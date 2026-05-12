@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../app/providers/auth_provider.dart';
-import '../../app/theme.dart';
+import '../../core/network/auth_provider.dart';
+import '../../core/theme/app_theme.dart';
 
 /// Login email/password basique pour le hackathon.
 ///

@@ -2,21 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../features/home/home_shell.dart';
 import '../features/login/login_screen.dart';
-import '../features/me/me_screen.dart';
 import '../features/splash/splash_screen.dart';
-import 'providers/auth_provider.dart';
+import '../features/programs/programs_page.dart';
+import '../features/programs/program_detail_page.dart';
+import '../features/modules/module_detail_page.dart';
+import '../features/notes/notes_page.dart';
+import '../core/network/auth_provider.dart';
 
-/// Router go_router avec auth guard.
-///
-/// MIGRATION HINT
-/// ──────────────────────────────────────────────────────────────────────────
-/// mira_chat utilise un `rootNavigatorKey` global (exposé pour les handlers
-/// FCM/deep links), un drain de pending deep-links, et un pattern
-/// `miraapp://` parsing centralisé (`app/services/miraapp_uri.dart`). À
-/// migrer si on ajoute push notifications + deep links externes.
-/// ──────────────────────────────────────────────────────────────────────────
 final routerProvider = Provider<GoRouter>((ref) {
   final auth = ref.watch(authNotifierProvider);
 
@@ -24,7 +17,6 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/splash',
     refreshListenable: GoRouterRefreshNotifier(ref),
     redirect: (context, state) {
-      // Tant que l'auth n'est pas résolue, on reste sur /splash
       if (auth.isLoading) {
         return state.matchedLocation == '/splash' ? null : '/splash';
       }
@@ -36,12 +28,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isOnSplash = state.matchedLocation == '/splash';
       final isOnLogin = state.matchedLocation == '/login';
 
-      // Auth résolue → on quitte /splash
       if (isOnSplash) {
-        return loggedIn ? '/home/programs' : '/login';
+        return loggedIn ? '/' : '/login';
       }
       if (!loggedIn && !isOnLogin) return '/login';
-      if (loggedIn && isOnLogin) return '/home/programs';
+      if (loggedIn && isOnLogin) return '/';
 
       return null;
     },
@@ -54,59 +45,85 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/login',
         builder: (_, __) => const LoginScreen(),
       ),
-      GoRoute(
-        path: '/me',
-        builder: (_, __) => const MeScreen(),
-      ),
-      // Shell route avec bottom navigation persistante
       ShellRoute(
-        builder: (context, state, child) =>
-            HomeShell(location: state.matchedLocation, child: child),
+        builder: (context, state, child) => Scaffold(
+          body: child,
+          bottomNavigationBar: Container(
+            decoration: const BoxDecoration(
+              border: Border(top: BorderSide(color: MiraTheme.rule, width: 0.5)),
+            ),
+            child: BottomNavigationBar(
+              currentIndex: _calculateSelectedIndex(state.matchedLocation),
+              elevation: 0,
+              backgroundColor: MiraTheme.cardBg,
+              selectedItemColor: MiraTheme.miraRed,
+              unselectedItemColor: MiraTheme.muted,
+              selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+              type: BottomNavigationBarType.fixed,
+              onTap: (index) {
+                if (index == 0) context.go('/');
+                if (index == 1) context.go('/notes');
+              },
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Padding(
+                    padding: EdgeInsets.only(bottom: 4),
+                    child: Icon(Icons.auto_stories_outlined),
+                  ),
+                  activeIcon: Padding(
+                    padding: EdgeInsets.only(bottom: 4),
+                    child: Icon(Icons.auto_stories),
+                  ),
+                  label: 'Programmes',
+                ),
+                BottomNavigationBarItem(
+                  icon: Padding(
+                    padding: EdgeInsets.only(bottom: 4),
+                    child: Icon(Icons.note_alt_outlined),
+                  ),
+                  activeIcon: Padding(
+                    padding: EdgeInsets.only(bottom: 4),
+                    child: Icon(Icons.note_alt),
+                  ),
+                  label: 'Notes',
+                ),
+              ],
+            ),
+          ),
+        ),
         routes: [
           GoRoute(
-            path: '/home/programs',
-            builder: (_, __) => const HomeTabPlaceholder(
-              title: 'Programmes',
-              hint:
-                  'Liste des Mira Class auxquelles l\'apprenant est inscrit.\n'
-                  'API : GET /v1/me/enrolments',
-            ),
+            path: '/',
+            builder: (_, __) => const ProgramsPage(),
           ),
           GoRoute(
-            path: '/home/library',
-            builder: (_, __) => const HomeTabPlaceholder(
-              title: 'Bibliothèque',
-              hint:
-                  'Notes personnelles, organisées par concept via IA.\n'
-                  'API : GET /v1/me/notes',
-            ),
-          ),
-          GoRoute(
-            path: '/home/tutor',
-            builder: (_, __) => const HomeTabPlaceholder(
-              title: 'Tutor IA',
-              hint:
-                  'Conversation Q&A avec un tutor IA (OpenRouter).\n'
-                  'API : POST /v1/tutor/ask',
-            ),
-          ),
-          GoRoute(
-            path: '/home/profile',
-            builder: (_, __) => const HomeTabPlaceholder(
-              title: 'Profil',
-              hint:
-                  'Profil apprenant + skills validées + carte communauté.\n'
-                  'API : GET /v1/me',
-            ),
+            path: '/notes',
+            builder: (_, __) => const NotesPage(),
           ),
         ],
+      ),
+      GoRoute(
+        path: '/program/:id',
+        builder: (context, state) => ProgramDetailPage(
+          id: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: '/module/:id',
+        builder: (context, state) => ModuleDetailPage(
+          id: state.pathParameters['id']!,
+        ),
       ),
     ],
   );
 });
 
-/// Adapter Riverpod → go_router refreshListenable (le router se rebuild quand
-/// l'auth state change, donc le `redirect` est ré-évalué).
+int _calculateSelectedIndex(String location) {
+  if (location.startsWith('/notes')) return 1;
+  return 0;
+}
+
 class GoRouterRefreshNotifier extends ChangeNotifier {
   GoRouterRefreshNotifier(Ref ref) {
     ref.listen(authNotifierProvider, (_, __) => notifyListeners());

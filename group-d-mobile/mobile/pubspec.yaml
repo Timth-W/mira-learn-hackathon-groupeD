@@ -53,4 +53,5 @@ flutter:
   # Le .env est embarqué comme asset (pratique courante de flutter_dotenv).
   # ⚠️ Ne JAMAIS committer un .env de prod — voir .gitignore et .env.example.
   assets:
-    - .env
+    - assets/.env
+

@@ -9,6 +9,7 @@ import '../features/programs/program_detail_page.dart';
 import '../features/modules/module_detail_page.dart';
 import '../features/notes/notes_page.dart';
 import '../core/network/auth_provider.dart';
+import '../core/theme/app_theme.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final auth = ref.watch(authNotifierProvider);

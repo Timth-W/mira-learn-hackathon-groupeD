@@ -39,6 +39,8 @@ dependencies:
   # Iconographie (équivalent solar_icons côté mira_chat)
   flutter_svg: ^2.0.10+1
 
+  google_fonts: ^6.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

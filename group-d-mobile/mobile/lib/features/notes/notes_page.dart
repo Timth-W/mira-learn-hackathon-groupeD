@@ -16,35 +16,49 @@ class NotesPage extends ConsumerWidget {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 120.0,
+            expandedHeight: 160.0,
             floating: false,
             pinned: true,
             backgroundColor: MiraTheme.warmBeige,
+            elevation: 0,
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-              title: const Text(
-                'Mes Notes',
-                style: TextStyle(
-                  color: MiraTheme.charcoal,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 24,
+              titlePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              expandedTitleScale: 1.3,
+              title: Text(
+                'Mes\nNotes',
+                style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                  height: 1.0,
+                  fontSize: 28,
                 ),
               ),
               centerTitle: false,
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
             sliver: notesAsync.when(
               data: (notes) => notes.isEmpty
-                  ? const SliverFillRemaining(
+                  ? SliverFillRemaining(
+                      hasScrollBody: false,
                       child: Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.note_alt_outlined, size: 64, color: MiraTheme.muted),
-                            SizedBox(height: 16),
-                            Text('Aucune note pour le moment', style: TextStyle(color: MiraTheme.muted)),
+                            const Icon(Icons.note_alt_outlined, size: 64, color: MiraTheme.mutedSoft),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Aucune note pour le moment.\nQue souhaites-tu retenir ?',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: MiraTheme.muted, height: 1.5),
+                            ),
+                            const SizedBox(height: 24),
+                            SizedBox(
+                              width: 200,
+                              child: OutlinedButton(
+                                onPressed: () => _showAddNoteDialog(context),
+                                child: const Text('Créer ma première note'),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -52,7 +66,10 @@ class NotesPage extends ConsumerWidget {
                   : SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
-                          return NoteCard(note: notes[index]);
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 16),
+                            child: NoteCard(note: notes[index]),
+                          );
                         },
                         childCount: notes.length,
                       ),
@@ -68,19 +85,22 @@ class NotesPage extends ConsumerWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            builder: (context) => const NoteEditor(),
-          );
-        },
+        onPressed: () => _showAddNoteDialog(context),
         backgroundColor: MiraTheme.miraRed,
         foregroundColor: Colors.white,
         elevation: 4,
+        shape: const CircleBorder(),
         child: const Icon(Icons.add_rounded, size: 32),
       ),
+    );
+  }
+
+  void _showAddNoteDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const NoteEditor(),
     );
   }
 }

@@ -19,6 +19,7 @@ android/app/build/
 
 # Env — le `.env` placeholder est versionné, à remplacer en local.
 # Si l'étudiant le remplit avec ses vraies clés, qu'il fasse `git update-index --skip-worktree .env`
+.env
 .env.local
 .env.*.local
 

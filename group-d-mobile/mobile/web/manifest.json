@@ -1,6 +1,6 @@
 {
-    "name": "mira_learn",
-    "short_name": "mira_learn",
+    "name": "mira_learn_mobile_template",
+    "short_name": "mira_learn_mobile_template",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../../app/theme.dart';
+import '../../core/theme/app_theme.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -11,31 +10,32 @@ class SplashScreen extends StatelessWidget {
       backgroundColor: MiraTheme.warmBeige,
       body: Center(
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              'Mira',
-              style: TextStyle(
-                fontSize: 48,
-                fontWeight: FontWeight.w700,
-                color: MiraTheme.miraRed,
-                letterSpacing: -1.5,
-              ),
-            ),
-            const SizedBox(height: 8),
+            const Spacer(flex: 3),
             Text(
-              'Learn',
-              style: TextStyle(
-                fontSize: 18,
-                color: MiraTheme.charcoal.withValues(alpha: 0.7),
-                letterSpacing: 4,
-              ),
+              'Mira',
+              style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                    color: MiraTheme.miraRed,
+                    fontSize: 64,
+                    letterSpacing: -2,
+                  ),
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: 4),
+            Text(
+              'LEARN',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    letterSpacing: 8,
+                    fontWeight: FontWeight.w700,
+                    color: MiraTheme.charcoal.withOpacity(0.5),
+                  ),
+            ),
+            const Spacer(flex: 2),
             const CircularProgressIndicator(
               color: MiraTheme.miraRed,
               strokeWidth: 2,
             ),
+            const SizedBox(height: 64),
           ],
         ),
       ),

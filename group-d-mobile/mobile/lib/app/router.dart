@@ -8,6 +8,7 @@ import '../features/programs/programs_page.dart';
 import '../features/programs/program_detail_page.dart';
 import '../features/modules/module_detail_page.dart';
 import '../features/notes/notes_page.dart';
+import '../features/me/me_screen.dart';
 import '../core/network/auth_provider.dart';
 import '../core/theme/app_theme.dart';
 
@@ -65,6 +66,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               onTap: (index) {
                 if (index == 0) context.go('/');
                 if (index == 1) context.go('/notes');
+                if (index == 2) context.go('/me');
               },
               items: const [
                 BottomNavigationBarItem(
@@ -89,6 +91,17 @@ final routerProvider = Provider<GoRouter>((ref) {
                   ),
                   label: 'Notes',
                 ),
+                BottomNavigationBarItem(
+                  icon: Padding(
+                    padding: EdgeInsets.only(bottom: 4),
+                    child: Icon(Icons.person_outline),
+                  ),
+                  activeIcon: Padding(
+                    padding: EdgeInsets.only(bottom: 4),
+                    child: Icon(Icons.person),
+                  ),
+                  label: 'Compte',
+                ),
               ],
             ),
           ),
@@ -101,6 +114,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/notes',
             builder: (_, __) => const NotesPage(),
+          ),
+          GoRoute(
+            path: '/me',
+            builder: (_, __) => const MeScreen(),
           ),
         ],
       ),
@@ -122,6 +139,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
 int _calculateSelectedIndex(String location) {
   if (location.startsWith('/notes')) return 1;
+  if (location.startsWith('/me')) return 2;
   return 0;
 }
 

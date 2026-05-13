@@ -8,7 +8,7 @@ class ModuleDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final int moduleId = int.tryParse(id) ?? 0;
+    final String moduleId = id;
 
     return Scaffold(
       backgroundColor: MiraTheme.warmBeige,

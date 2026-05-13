@@ -1,16 +1,35 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+class Note {
+  const Note({
+    required this.id,
+    required this.classId,
+    this.moduleId,
+    required this.content,
+    this.createdAt,
+    this.updatedAt,
+  });
 
-part 'note_model.freezed.dart';
-part 'note_model.g.dart';
+  final String id;
+  final String classId;
+  final String? moduleId;
+  final String content;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
-@freezed
-class Note with _$Note {
-  const factory Note({
-    required int id,
-    @JsonKey(name: 'module_id') required int moduleId,
-    required String content,
-    DateTime? createdAt,
-  }) = _Note;
+  factory Note.fromJson(Map<String, dynamic> json) {
+    DateTime? parseDate(dynamic value) {
+      if (value is String && value.isNotEmpty) {
+        return DateTime.tryParse(value);
+      }
+      return null;
+    }
 
-  factory Note.fromJson(Map<String, dynamic> json) => _$NoteFromJson(json);
+    return Note(
+      id: (json['id'] ?? '').toString(),
+      classId: (json['class_id'] ?? '').toString(),
+      moduleId: json['module_id']?.toString(),
+      content: (json['content'] ?? '').toString(),
+      createdAt: parseDate(json['created_at']),
+      updatedAt: parseDate(json['updated_at']),
+    );
+  }
 }

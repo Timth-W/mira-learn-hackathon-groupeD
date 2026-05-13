@@ -6,7 +6,7 @@ import '../../core/theme/app_theme.dart';
 
 class NoteEditor extends ConsumerStatefulWidget {
   final Note? note;
-  final int? moduleId;
+  final String? moduleId;
   const NoteEditor({super.key, this.note, this.moduleId});
 
   @override
@@ -96,7 +96,7 @@ class _NoteEditorState extends ConsumerState<NoteEditor> {
               if (content.isEmpty) return;
 
               if (widget.note == null) {
-                ref.read(notesProvider.notifier).addNote(widget.moduleId ?? 1, content);
+                ref.read(notesProvider.notifier).addNote(content, moduleId: widget.moduleId);
               } else {
                 ref.read(notesProvider.notifier).updateNote(widget.note!.id, content);
               }

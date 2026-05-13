@@ -44,7 +44,7 @@ class NoteCard extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      'MODULE ${note.moduleId}',
+                      note.moduleId == null ? 'SANS MODULE' : 'MODULE ${note.moduleId}',
                       style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,

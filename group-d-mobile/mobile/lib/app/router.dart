@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../features/home/home_shell.dart';
 import '../features/login/login_screen.dart';
 import '../features/me/me_screen.dart';
+import '../features/programs/programmes_screen.dart';
 import '../features/splash/splash_screen.dart';
 import 'providers/auth_provider.dart';
 
@@ -65,12 +66,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: '/home/programs',
-            builder: (_, __) => const HomeTabPlaceholder(
-              title: 'Programmes',
-              hint:
-                  'Liste des Mira Class auxquelles l\'apprenant est inscrit.\n'
-                  'API : GET /v1/me/enrolments',
-            ),
+            builder: (_, __) => const ProgrammesScreen(),
           ),
           GoRoute(
             path: '/home/library',

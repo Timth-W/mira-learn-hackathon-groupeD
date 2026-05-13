@@ -67,6 +67,7 @@ class Settings(BaseSettings):
         "http://localhost:8080",
         "http://localhost:8081",
     ])
+    CORS_ALLOW_ORIGIN_REGEX: str = r"http://(localhost|127\.0\.0\.1)(:\d+)?$"
 
     def supabase_jwks_url(self) -> str:
         """Construit l'URL JWKS Supabase si pas fournie explicitement."""

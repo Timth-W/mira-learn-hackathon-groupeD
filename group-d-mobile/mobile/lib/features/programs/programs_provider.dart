@@ -13,29 +13,53 @@ class Programs extends _$Programs {
 
   Future<List<Program>> _fetchPrograms() async {
     final dio = ref.read(dioProvider);
-    // For now, let's use mock data if API fails or for demo
-    try {
-      final response = await dio.get('/student/programs');
-      final List<dynamic> data = response.data['programs'];
-      return data.map((json) => Program.fromJson(json)).toList();
-    } catch (e) {
-      // Mock data for demo
-      return [
-        Program(
-          id: 1,
-          title: "Remote Freelance",
-          mentor: "Sarah",
-          progress: 72,
-          nextSession: DateTime.parse("2025-05-20T18:00:00"),
-        ),
-        Program(
-          id: 2,
-          title: "Fullstack Dev",
-          mentor: "Alex",
-          progress: 30,
-          nextSession: DateTime.parse("2025-06-10T14:00:00"),
-        ),
-      ];
+    final response = await dio.get('/v1/students/me/notes');
+
+    final body = response.data;
+    final List<dynamic> notes;
+
+    if (body is Map<String, dynamic> &&
+        body['status'] == 'success' &&
+        body['data'] is List<dynamic>) {
+      notes = body['data'] as List<dynamic>;
+    } else if (body is List<dynamic>) {
+      notes = body;
+    } else {
+      notes = const <dynamic>[];
     }
+
+    final groupedByClass = <String, List<Map<String, dynamic>>>{};
+    for (final item in notes) {
+      if (item is! Map<String, dynamic>) continue;
+      final classId = item['class_id']?.toString();
+      if (classId == null || classId.isEmpty) continue;
+      groupedByClass.putIfAbsent(classId, () => <Map<String, dynamic>>[]).add(item);
+    }
+
+    final programs = <Program>[];
+    groupedByClass.forEach((classId, classNotes) {
+      classNotes.sort((a, b) {
+        final aDate = DateTime.tryParse(a['updated_at']?.toString() ?? '') ?? DateTime(1970);
+        final bDate = DateTime.tryParse(b['updated_at']?.toString() ?? '') ?? DateTime(1970);
+        return bDate.compareTo(aDate);
+      });
+
+      final latest = classNotes.first;
+      final latestDate =
+          DateTime.tryParse(latest['updated_at']?.toString() ?? '') ?? DateTime.now();
+
+      programs.add(
+        Program(
+          id: classId.hashCode.abs(),
+          title: 'Classe ${classId.substring(0, classId.length > 8 ? 8 : classId.length)}',
+          mentor: 'Mira Learn',
+          progress: (classNotes.length * 20).clamp(5, 100),
+          nextSession: latestDate,
+        ),
+      );
+    });
+
+    programs.sort((a, b) => b.nextSession.compareTo(a.nextSession));
+    return programs;
   }
 }

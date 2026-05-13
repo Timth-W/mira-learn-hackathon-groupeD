@@ -52,7 +52,11 @@ async def _fetch_jwks() -> dict[str, Any]:
 
     url = settings.supabase_jwks_url()
     async with httpx.AsyncClient(timeout=5.0) as client:
-        response = await client.get(url)
+        # Some Supabase projects require the anon apikey even for JWKS.
+        response = await client.get(
+            url,
+            headers={"apikey": settings.SUPABASE_ANON_KEY},
+        )
         response.raise_for_status()
         _jwks_cache = response.json()
         return _jwks_cache
@@ -82,7 +86,7 @@ async def _decode_jwt(token: str) -> dict[str, Any]:
         return jwt.decode(
             token,
             key=key,
-            algorithms=["RS256"],
+            algorithms=["RS256", "ES256"],
             audience="authenticated",
             options={"verify_aud": True},
         )

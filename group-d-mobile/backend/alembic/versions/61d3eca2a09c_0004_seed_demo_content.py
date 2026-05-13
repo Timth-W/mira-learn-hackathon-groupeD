@@ -33,8 +33,9 @@ def upgrade() -> None:
     org_id = "11111111-2222-3333-4444-555555555201"
     attempt_id = "11111111-2222-3333-4444-555555555301"
     answer_id = "11111111-2222-3333-4444-555555555401"
+    conn = op.get_bind()
 
-    op.execute(
+    conn.execute(
         sa.text(
             """
             INSERT INTO student_note (id, user_id, class_id, session_id, module_id, content, tags, is_favorite, color, created_at, updated_at)
@@ -58,7 +59,7 @@ def upgrade() -> None:
         },
     )
 
-    op.execute(
+    conn.execute(
         sa.text(
             """
             INSERT INTO student_note_organization (
@@ -67,10 +68,10 @@ def upgrade() -> None:
             )
             VALUES (
                 :org_id, :user_id, :class_id, :module_id,
-                :note_ids::jsonb,
+                CAST(:note_ids AS jsonb),
                 :summary,
-                :concepts::jsonb,
-                :takeaways::jsonb,
+                CAST(:concepts AS jsonb),
+                CAST(:takeaways AS jsonb),
                 true,
                 'anthropic/claude-3.5-haiku',
                 280,
@@ -95,7 +96,7 @@ def upgrade() -> None:
         },
     )
 
-    op.execute(
+    conn.execute(
         sa.text(
             """
             INSERT INTO student_quiz_attempt (
@@ -118,7 +119,7 @@ def upgrade() -> None:
         },
     )
 
-    op.execute(
+    conn.execute(
         sa.text(
             """
             INSERT INTO student_quiz_answer (
@@ -126,7 +127,7 @@ def upgrade() -> None:
             )
             VALUES (
                 :answer_id, :attempt_id, :question_id,
-                :selected_options::jsonb,
+                CAST(:selected_options AS jsonb),
                 true,
                 1,
                 NOW() - INTERVAL '7 minutes',

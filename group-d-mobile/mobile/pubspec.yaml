@@ -52,8 +52,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  # Le .env est embarqué comme asset (pratique courante de flutter_dotenv).
+  # Le .env à la racine du projet est embarqué comme asset (pratique courante de flutter_dotenv).
   # ⚠️ Ne JAMAIS committer un .env de prod — voir .gitignore et .env.example.
   assets:
-    - assets/.env
+    - .env
 

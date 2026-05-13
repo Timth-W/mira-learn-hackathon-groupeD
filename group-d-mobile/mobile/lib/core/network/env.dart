@@ -15,10 +15,14 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 /// ──────────────────────────────────────────────────────────────────────────
 abstract final class Env {
   static String get supabaseUrl =>
-      dotenv.env['SUPABASE_URL'] ?? _missing('SUPABASE_URL');
+      dotenv.env['SUPABASE_URL'] ??
+      dotenv.env['MOBILE_SUPABASE_URL'] ??
+      _missing('SUPABASE_URL or MOBILE_SUPABASE_URL');
 
   static String get supabaseAnonKey =>
-      dotenv.env['SUPABASE_ANON_KEY'] ?? _missing('SUPABASE_ANON_KEY');
+      dotenv.env['SUPABASE_ANON_KEY'] ??
+      dotenv.env['MOBILE_SUPABASE_ANON_KEY'] ??
+      _missing('SUPABASE_ANON_KEY or MOBILE_SUPABASE_ANON_KEY');
 
   /// URL du backend FastAPI Groupe D
   /// - iOS Simulator : http://localhost:8000

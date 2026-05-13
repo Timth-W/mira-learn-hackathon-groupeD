@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 
-import '../app/env.dart';
+import '../core/network/env.dart';
 
 class ApiService {
   ApiService(this.dio);

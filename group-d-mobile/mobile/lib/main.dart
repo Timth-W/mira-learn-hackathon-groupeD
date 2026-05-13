@@ -27,7 +27,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // 1. Charge le .env (asset embarqué via pubspec.yaml)
-  await dotenv.load(fileName: '.env');
+  await dotenv.load(fileName: 'assets/.env');
 
   // 2. Init Supabase avec les credentials de la branche groupe-d
   await Supabase.initialize(

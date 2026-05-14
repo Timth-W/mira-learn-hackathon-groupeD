@@ -58,15 +58,6 @@ class ProgramsPage extends ConsumerWidget {
                 return SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
-                      if (result.isMocked && index == 0) {
-                        return Column(
-                          children: [
-                            const _MockBanner(),
-                            const SizedBox(height: 16),
-                            _ProgramCard(enrolment: result.enrolments[index]),
-                          ],
-                        );
-                      }
                       return _ProgramCard(enrolment: result.enrolments[index]);
                     },
                     childCount: result.enrolments.length,
@@ -276,37 +267,6 @@ class _InfoPill extends StatelessWidget {
           Icon(icon, size: 16, color: MiraTheme.muted),
           const SizedBox(width: 6),
           Text(label),
-        ],
-      ),
-    );
-  }
-}
-
-class _MockBanner extends StatelessWidget {
-  const _MockBanner();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF4DB),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: const Row(
-        children: [
-          Icon(Icons.wifi_off_outlined, color: Color(0xFF8A6116)),
-          SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Backend indisponible. Affichage temporaire de donnees de demo.',
-              style: TextStyle(
-                color: Color(0xFF8A6116),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
         ],
       ),
     );

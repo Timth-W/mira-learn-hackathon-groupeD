@@ -8,20 +8,9 @@ part 'program_detail_provider.g.dart';
 
 @riverpod
 Future<ProgramDetail> programDetail(ProgramDetailRef ref, String id) async {
-  final dio = ref.read(dioProvider);
-  final response = await dio.get('/v1/me/enrolments/$id');
-  final body = response.data;
-
-  final Map<String, dynamic> data;
-  if (body is Map<String, dynamic> &&
-      body['status'] == 'success' &&
-      body['data'] is Map<String, dynamic>) {
-    data = body['data'] as Map<String, dynamic>;
-  } else if (body is Map<String, dynamic>) {
-    data = body;
-  } else {
-    data = const <String, dynamic>{};
-  }
+  final api = ref.read(apiClientProvider);
+  final body = await api.getAny('/v1/me/enrolments/$id');
+  final data = body is Map<String, dynamic> ? body : const <String, dynamic>{};
 
   final modules = ((data['modules'] as List<dynamic>?) ?? const <dynamic>[])
       .whereType<Map<String, dynamic>>()

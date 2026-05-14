@@ -1,4 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import '../../app/providers/api_provider.dart';
 import 'note_model.dart';
 
@@ -11,20 +12,9 @@ class Notes extends AsyncNotifier<List<Note>> {
   }
 
   Future<List<Note>> _fetchNotes() async {
-    final dio = ref.read(dioProvider);
-    final response = await dio.get('/v1/students/me/notes');
-    final body = response.data;
-
-    final List<dynamic> data;
-    if (body is Map<String, dynamic> &&
-        body['status'] == 'success' &&
-        body['data'] is List<dynamic>) {
-      data = body['data'] as List<dynamic>;
-    } else if (body is List<dynamic>) {
-      data = body;
-    } else {
-      data = const <dynamic>[];
-    }
+    final api = ref.read(apiClientProvider);
+    final body = await api.getAny('/v1/students/me/notes');
+    final data = body is List<dynamic> ? body : const <dynamic>[];
 
     return data
         .whereType<Map<String, dynamic>>()
@@ -38,13 +28,13 @@ class Notes extends AsyncNotifier<List<Note>> {
     String? classId,
     String? concept,
   }) async {
-    final dio = ref.read(dioProvider);
+    final api = ref.read(apiClientProvider);
     final resolvedClassId = classId ?? await _resolveClassId();
     final tags = _resolveTags(content, concept);
 
-    await dio.post(
+    await api.postAny(
       '/v1/students/me/notes',
-      data: {
+      body: {
         'class_id': resolvedClassId,
         if (moduleId != null && moduleId.isNotEmpty) 'module_id': moduleId,
         'content': content,
@@ -60,30 +50,31 @@ class Notes extends AsyncNotifier<List<Note>> {
     String content, {
     String? concept,
   }) async {
-    final dio = ref.read(dioProvider);
-    await dio.patch(
+    final api = ref.read(apiClientProvider);
+    final tags = _resolveTags(content, concept);
+    await api.patchAny(
       '/v1/students/me/notes/$id',
-      data: {
+      body: {
         'content': content,
-        'tags': _resolveTags(content, concept),
-        'color': _suggestColor(_resolveTags(content, concept)),
+        'tags': tags,
+        'color': _suggestColor(tags),
       },
     );
     ref.invalidateSelf();
   }
 
   Future<void> toggleFavorite(Note note) async {
-    final dio = ref.read(dioProvider);
-    await dio.patch(
+    final api = ref.read(apiClientProvider);
+    await api.patchAny(
       '/v1/students/me/notes/${note.id}',
-      data: {'is_favorite': !note.isFavorite},
+      body: {'is_favorite': !note.isFavorite},
     );
     ref.invalidateSelf();
   }
 
   Future<void> deleteNote(String id) async {
-    final dio = ref.read(dioProvider);
-    await dio.delete('/v1/students/me/notes/$id');
+    final api = ref.read(apiClientProvider);
+    await api.deleteAny('/v1/students/me/notes/$id');
     ref.invalidateSelf();
   }
 
@@ -91,27 +82,16 @@ class Notes extends AsyncNotifier<List<Note>> {
     required String classId,
     String? moduleId,
   }) async {
-    final dio = ref.read(dioProvider);
-    final response = await dio.post(
+    final api = ref.read(apiClientProvider);
+    final body = await api.post(
       '/v1/students/me/note-organizations',
-      data: {
+      body: {
         'class_id': classId,
         if (moduleId != null && moduleId.isNotEmpty)
           'scope_module_id': moduleId,
       },
     );
-    final body = response.data;
-    final Map<String, dynamic> data;
-    if (body is Map<String, dynamic> &&
-        body['status'] == 'success' &&
-        body['data'] is Map<String, dynamic>) {
-      data = body['data'] as Map<String, dynamic>;
-    } else if (body is Map<String, dynamic>) {
-      data = body;
-    } else {
-      data = const <String, dynamic>{};
-    }
-    return NoteOrganization.fromJson(data);
+    return NoteOrganization.fromJson(body);
   }
 
   Future<String> _resolveClassId() async {
@@ -126,7 +106,8 @@ class Notes extends AsyncNotifier<List<Note>> {
     }
 
     throw StateError(
-        'Impossible de creer une note: aucun class_id disponible.');
+      'Impossible de creer une note: aucun class_id disponible.',
+    );
   }
 
   List<String> _resolveTags(String content, String? concept) {

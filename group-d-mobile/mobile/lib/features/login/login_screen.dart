@@ -62,7 +62,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SizedBox(height: 12),
               Text(
                 'Connecte-toi pour poursuivre ton parcours.',
-                style: TextStyle(color: MiraTheme.charcoal.withOpacity(0.7)),
+                style: TextStyle(color: MiraTheme.charcoal.withValues(alpha: 0.7)),
               ),
               const SizedBox(height: 48),
               TextField(

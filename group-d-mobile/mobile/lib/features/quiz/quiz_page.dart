@@ -70,7 +70,8 @@ class _QuizPageState extends ConsumerState<QuizPage> {
     if (_answers.length != questions.length) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Reponds a toutes les questions avant de valider.')),
+          content: Text('Reponds a toutes les questions avant de valider.'),
+        ),
       );
       return;
     }
@@ -78,7 +79,6 @@ class _QuizPageState extends ConsumerState<QuizPage> {
     setState(() => _submitting = true);
     try {
       final api = ref.read(apiClientProvider);
-      final dio = ref.read(dioProvider);
       final maxScore = (quiz['max_score'] as num?)?.toInt() ?? questions.length;
       final moduleId = widget.moduleId ?? quiz['module_id']?.toString() ?? '';
       final classId = widget.classId ?? quiz['class_id']?.toString() ?? '';
@@ -98,9 +98,9 @@ class _QuizPageState extends ConsumerState<QuizPage> {
         throw StateError('Attempt id manquant.');
       }
 
-      await dio.put(
+      await api.putAny(
         '/v1/students/me/attempts/$attemptId/answers',
-        data: {
+        body: {
           'answers': questions.map((question) {
             final questionId = question['id'].toString();
             return {
@@ -151,13 +151,15 @@ class _QuizPageState extends ConsumerState<QuizPage> {
       ),
       body: _loading
           ? const Center(
-              child: CircularProgressIndicator(color: MiraTheme.miraRed))
+              child: CircularProgressIndicator(color: MiraTheme.miraRed),
+            )
           : _error != null
               ? Center(
                   child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(_error!),
-                ))
+                    padding: const EdgeInsets.all(24),
+                    child: Text(_error!),
+                  ),
+                )
               : _result != null
                   ? _QuizResultView(
                       quizTitle: quiz?['title']?.toString() ?? 'Quiz',
@@ -305,16 +307,22 @@ class _QuestionCard extends StatelessWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 12),
-            for (final option in options)
-              RadioListTile<String>(
-                value: option['id'].toString(),
-                groupValue: selectedOptionId,
-                onChanged: (value) {
-                  if (value != null) onChanged(value);
-                },
-                title: Text(option['label']?.toString() ?? ''),
-                contentPadding: EdgeInsets.zero,
+            RadioGroup<String>(
+              groupValue: selectedOptionId,
+              onChanged: (value) {
+                if (value != null) onChanged(value);
+              },
+              child: Column(
+                children: [
+                  for (final option in options)
+                    RadioListTile<String>(
+                      value: option['id'].toString(),
+                      title: Text(option['label']?.toString() ?? ''),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                ],
               ),
+            ),
           ],
         ),
       ),

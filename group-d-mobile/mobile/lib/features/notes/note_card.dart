@@ -37,24 +37,40 @@ class NoteCard extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: MiraTheme.warmBeige,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      note.moduleId == null ? 'SANS MODULE' : 'MODULE ${note.moduleId}',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        color: MiraTheme.muted,
-                        letterSpacing: 1.2,
-                      ),
+                  Expanded(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _ChipLabel(
+                          label: note.moduleId == null
+                              ? 'SANS MODULE'
+                              : _moduleLabel(note.moduleId!),
+                          color: _noteColor(note.color),
+                        ),
+                        for (final tag in note.tags.take(2))
+                          _ChipLabel(
+                              label: '#$tag', color: MiraTheme.warmBeige),
+                      ],
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 20, color: MiraTheme.muted),
+                    icon: Icon(
+                      note.isFavorite
+                          ? Icons.star_rounded
+                          : Icons.star_border_rounded,
+                      size: 22,
+                      color: note.isFavorite ? MiraTheme.gold : MiraTheme.muted,
+                    ),
+                    onPressed: () {
+                      ref.read(notesProvider.notifier).toggleFavorite(note);
+                    },
+                    tooltip: 'Favori',
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline,
+                        size: 20, color: MiraTheme.muted),
                     onPressed: () {
                       ref.read(notesProvider.notifier).deleteNote(note.id);
                     },
@@ -91,6 +107,46 @@ class NoteCard extends ConsumerWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  static String _moduleLabel(String value) {
+    final prefix = value.length >= 4 ? value.substring(0, 4) : value;
+    final suffix = value.length >= 4 ? value.substring(value.length - 4) : value;
+    return 'MODULE $prefix-$suffix';
+  }
+
+  static Color _noteColor(String? color) {
+    return switch (color) {
+      'green' => MiraTheme.pastelSage,
+      'yellow' => MiraTheme.beigeDeep,
+      _ => MiraTheme.beigeDeep,
+    };
+  }
+}
+
+class _ChipLabel extends StatelessWidget {
+  const _ChipLabel({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: MiraTheme.charcoal,
         ),
       ),
     );

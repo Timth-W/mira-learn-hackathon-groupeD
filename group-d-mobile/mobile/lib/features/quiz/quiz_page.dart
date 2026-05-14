@@ -42,7 +42,9 @@ class _QuizPageState extends ConsumerState<QuizPage> {
       _error = null;
     });
     try {
-      final quiz = await ref.read(apiClientProvider).get('/v1/students/me/quizzes/${widget.id}');
+      final quiz = await ref
+          .read(apiClientProvider)
+          .get('/v1/students/me/quizzes/${widget.id}');
       if (!mounted) return;
       setState(() {
         _quiz = quiz;
@@ -67,7 +69,9 @@ class _QuizPageState extends ConsumerState<QuizPage> {
 
     if (_answers.length != questions.length) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Reponds a toutes les questions avant de valider.')),
+        const SnackBar(
+          content: Text('Reponds a toutes les questions avant de valider.'),
+        ),
       );
       return;
     }
@@ -146,7 +150,9 @@ class _QuizPageState extends ConsumerState<QuizPage> {
         title: Text(widget.title ?? 'QCM'),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: MiraTheme.miraRed))
+          ? const Center(
+              child: CircularProgressIndicator(color: MiraTheme.miraRed),
+            )
           : _error != null
               ? Center(
                   child: Padding(
@@ -206,9 +212,11 @@ class _QuizQuestionView extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          '${quiz['question_count']} questions • badge ${quiz['skill_name']}',
+          '${questions.length} questions - badge ${quiz['skill_name']}',
           style: const TextStyle(color: MiraTheme.muted),
         ),
+        const SizedBox(height: 14),
+        _QuizProgress(answered: answers.length, total: questions.length),
         const SizedBox(height: 24),
         for (var i = 0; i < questions.length; i++) ...[
           _QuestionCard(
@@ -224,6 +232,37 @@ class _QuizQuestionView extends StatelessWidget {
         ElevatedButton(
           onPressed: submitting ? null : onSubmit,
           child: Text(submitting ? 'Validation...' : 'Valider mon QCM'),
+        ),
+      ],
+    );
+  }
+}
+
+class _QuizProgress extends StatelessWidget {
+  const _QuizProgress({required this.answered, required this.total});
+
+  final int answered;
+  final int total;
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = total == 0 ? 0.0 : answered / total;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(999),
+          child: LinearProgressIndicator(
+            minHeight: 8,
+            value: progress,
+            backgroundColor: MiraTheme.beigeDeep,
+            color: MiraTheme.miraRed,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          '$answered / $total reponses',
+          style: const TextStyle(color: MiraTheme.muted, fontSize: 12),
         ),
       ],
     );
@@ -277,10 +316,10 @@ class _QuestionCard extends StatelessWidget {
                 children: [
                   for (final option in options)
                     RadioListTile<String>(
-                  value: option['id'].toString(),
-                  title: Text(option['label']?.toString() ?? ''),
-                  contentPadding: EdgeInsets.zero,
-                ),
+                      value: option['id'].toString(),
+                      title: Text(option['label']?.toString() ?? ''),
+                      contentPadding: EdgeInsets.zero,
+                    ),
                 ],
               ),
             ),
@@ -310,19 +349,36 @@ class _QuizResultView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pct = double.tryParse(scorePct)?.round() ?? 0;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Card(
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: MiraTheme.cardBg,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: MiraTheme.rule),
+          ),
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(22),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  passed ? Icons.workspace_premium_rounded : Icons.flag_outlined,
-                  size: 56,
-                  color: passed ? MiraTheme.gold : MiraTheme.muted,
+                Container(
+                  width: 82,
+                  height: 82,
+                  decoration: BoxDecoration(
+                    color: passed ? MiraTheme.pastelSage : MiraTheme.beigeDeep,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    passed
+                        ? Icons.workspace_premium_rounded
+                        : Icons.flag_outlined,
+                    size: 48,
+                    color: passed ? MiraTheme.gold : MiraTheme.muted,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -332,7 +388,7 @@ class _QuizResultView extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  '$score / $maxScore • $scorePct%',
+                  '$score / $maxScore - $pct%',
                   style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
@@ -340,9 +396,25 @@ class _QuizResultView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: passed ? MiraTheme.pastelSage : MiraTheme.beigeDeep,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    passed ? 'Badge skill debloque' : 'Badge encore verrouille',
+                    style: TextStyle(
+                      color: passed ? MiraTheme.success : MiraTheme.error,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
                 Text(
                   passed
-                      ? 'Bravo ! Skill "$skillName" validée.'
+                      ? 'Bravo ! Skill "$skillName" validee.'
                       : 'Encore un effort pour valider la skill "$skillName".',
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: MiraTheme.muted, height: 1.5),

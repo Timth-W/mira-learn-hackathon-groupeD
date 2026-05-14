@@ -15,7 +15,7 @@ abstract final class MiraTheme {
   static const Color success = Color(0xFF16A34A);
   static const Color error = Color(0xFFEF4444);
   static const Color gold = Color(0xFFD4A853);
-  static const Color pastelSage = Color(0xA8C5A2FF);
+  static const Color pastelSage = Color(0xFFA8C5A2);
 
   // ── ThemeData ───────────────────────────────────────────────────────────
   static ThemeData get light {
@@ -107,6 +107,26 @@ abstract final class MiraTheme {
             fontWeight: FontWeight.w600,
           ),
         ),
+      ),
+      chipTheme: baseTheme.chipTheme.copyWith(
+        backgroundColor: cardBg,
+        selectedColor: miraRed,
+        secondarySelectedColor: miraRed,
+        disabledColor: beigeDeep,
+        checkmarkColor: Colors.white,
+        labelStyle: GoogleFonts.manrope(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: charcoal,
+        ),
+        secondaryLabelStyle: GoogleFonts.manrope(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+        side: const BorderSide(color: mutedSoft),
+        shape: const StadiumBorder(),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       ),
       cardTheme: CardThemeData(
         color: cardBg,

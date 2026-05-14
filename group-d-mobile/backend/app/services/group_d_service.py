@@ -1,10 +1,14 @@
+import json
+import logging
 from datetime import datetime, timezone
 from decimal import Decimal, ROUND_HALF_UP
 
 from sqlalchemy import Select, and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.exceptions import ConflictError, NotFoundError, ValidationError
+from app.integrations.openrouter import llm_client
 from app.models.domain import (
     StudentNote,
     StudentNoteOrganization,
@@ -21,6 +25,8 @@ from app.schemas.group_d import (
     StudentNoteUpdate,
 )
 
+logger = logging.getLogger(__name__)
+
 _QUIZ_DEFINITIONS: dict[str, dict] = {
     "11111111-2222-3333-4444-555555559001": {
         "id": "11111111-2222-3333-4444-555555559001",
@@ -31,7 +37,7 @@ _QUIZ_DEFINITIONS: dict[str, dict] = {
         "pass_threshold_pct": "70.00",
         "questions": [
             {
-                "id": "q-pitch-1",
+                "id": "11111111-2222-3333-4444-555555551001",
                 "prompt": "Quel ordre rend un pitch plus clair ?",
                 "options": [
                     {"id": "a", "label": "Probleme → Solution → Traction → Ask"},
@@ -42,7 +48,7 @@ _QUIZ_DEFINITIONS: dict[str, dict] = {
                 "points": 1,
             },
             {
-                "id": "q-pitch-2",
+                "id": "11111111-2222-3333-4444-555555551002",
                 "prompt": "Quel element aide le plus a capter l attention en debut de pitch ?",
                 "options": [
                     {"id": "a", "label": "Une liste de KPI"},
@@ -53,7 +59,7 @@ _QUIZ_DEFINITIONS: dict[str, dict] = {
                 "points": 1,
             },
             {
-                "id": "q-pitch-3",
+                "id": "11111111-2222-3333-4444-555555551003",
                 "prompt": "Quand presenter la traction ?",
                 "options": [
                     {"id": "a", "label": "Jamais, cela coupe l emotion"},
@@ -64,7 +70,7 @@ _QUIZ_DEFINITIONS: dict[str, dict] = {
                 "points": 1,
             },
             {
-                "id": "q-pitch-4",
+                "id": "11111111-2222-3333-4444-555555551004",
                 "prompt": "Que doit contenir un bon ask final ?",
                 "options": [
                     {"id": "a", "label": "Un besoin clair et relie a la prochaine etape"},
@@ -75,7 +81,7 @@ _QUIZ_DEFINITIONS: dict[str, dict] = {
                 "points": 1,
             },
             {
-                "id": "q-pitch-5",
+                "id": "11111111-2222-3333-4444-555555551005",
                 "prompt": "Quel ton est recommande pour repondre a une objection investisseur ?",
                 "options": [
                     {"id": "a", "label": "Defensif pour montrer sa conviction"},
@@ -96,7 +102,7 @@ _QUIZ_DEFINITIONS: dict[str, dict] = {
         "pass_threshold_pct": "70.00",
         "questions": [
             {
-                "id": "q-obj-1",
+                "id": "11111111-2222-3333-4444-555555552001",
                 "prompt": "Face a une objection, quel reflexe est prefere ?",
                 "options": [
                     {"id": "a", "label": "Reformuler avant de repondre"},
@@ -127,6 +133,123 @@ def _apply_note_filters(
     if tags:
         query = query.where(StudentNote.tags.contains(tags))
     return query
+
+
+def _learning_takeaway(content: str) -> str:
+    text = " ".join(content.strip().split())
+    if not text:
+        return "Revoir cette idee et la rattacher a un exemple concret."
+
+    lowered = text.lower()
+    if ">" in text:
+        parts = [part.strip(" .") for part in text.split(">")]
+        if len(parts) >= 2 and parts[0] and parts[1]:
+            return f"Prioriser {parts[0]} plutot que {parts[1]}."
+    if "doit" in lowered:
+        return text.replace("doit", "doit absolument", 1)
+    if ":" in text:
+        title, detail = text.split(":", 1)
+        return f"{title.strip()} : retenir la structure {detail.strip()}"
+    return text if text.endswith(".") else f"{text}."
+
+
+def _concept_description(concept_name: str, notes_count: int) -> str:
+    labels = {
+        "seo": "Optimiser la visibilite en distinguant les leviers vraiment utiles des actions de volume.",
+        "pitch": "Construire un message court, clair et convaincant pour un investisseur.",
+        "storytelling": "Transformer une idee en narration memorisable avec une progression logique.",
+        "growth": "Tester vite, mesurer, puis concentrer l'effort sur ce qui convertit.",
+        "feedback": "Formuler un retour utile, actionnable et recevable par l'autre personne.",
+        "leadership": "Clarifier la posture de decision et l'impact sur l'equipe.",
+        "communication": "Rendre un message plus clair en separant faits, ressenti, besoin et demande.",
+    }
+    if concept_name in labels:
+        return labels[concept_name]
+    return f"Concept a reviser a partir de {notes_count} note(s), avec exemples et cas d'usage."
+
+
+def _local_learning_sheet(notes: list[StudentNote], scope_module_id: str | None) -> dict:
+    concepts_map: dict[str, list[StudentNote]] = {}
+    for note in notes:
+        key = note.tags[0] if note.tags else "general"
+        concepts_map.setdefault(key, []).append(note)
+
+    concepts = []
+    for concept_name, concept_notes in concepts_map.items():
+        key_points = [_learning_takeaway(n.content) for n in concept_notes[:3]]
+        concepts.append(
+            {
+                "concept_name": concept_name,
+                "description": _concept_description(concept_name, len(concept_notes)),
+                "related_note_ids": [n.id for n in concept_notes],
+                "key_points": key_points,
+            }
+        )
+
+    scope = "ce module" if scope_module_id else "cette classe"
+    return {
+        "summary": (
+            f"Fiche de revision generee pour {scope}: {len(notes)} note(s) transformee(s) "
+            f"en {len(concepts)} concept(s) et points a retenir."
+        ),
+        "concepts": concepts,
+        "key_takeaways": [_learning_takeaway(n.content) for n in notes[:4]],
+        "generated_by_llm": False,
+        "llm_model_used": "local-fallback",
+        "llm_tokens_consumed": None,
+    }
+
+
+async def _generate_learning_sheet(notes: list[StudentNote], scope_module_id: str | None) -> dict:
+    notes_payload = [
+        {
+            "id": note.id,
+            "module_id": note.module_id,
+            "tags": note.tags,
+            "content": note.content,
+        }
+        for note in notes
+    ]
+    system_prompt = (
+        "Tu es Mira Learn, un assistant pedagogique pour nomades apprenants. "
+        "Transforme des notes brutes en vraie fiche de revision. "
+        "Ne te contente pas de recopier: reformule, clarifie, structure, rends memorisable. "
+        "Retourne uniquement du JSON valide."
+    )
+    user_prompt = (
+        "Cree une fiche de revision a partir de ces notes.\n"
+        "Contraintes:\n"
+        "- summary: synthese courte en 2 phrases maximum.\n"
+        "- key_takeaways: 3 a 5 points reformules, actionnables pour reviser.\n"
+        "- concepts: groupes pedagogiques avec concept_name, description, related_note_ids, key_points.\n"
+        "- related_note_ids doit uniquement contenir des ids fournis.\n"
+        "- key_points doivent etre des reformulations utiles, pas des copies mot a mot.\n\n"
+        f"Notes JSON:\n{json.dumps(notes_payload, ensure_ascii=False)}"
+    )
+
+    try:
+        response = await llm_client.complete(
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.25,
+            max_tokens=1000,
+            response_format={"type": "json_object"},
+        )
+        content = response["content"].strip()
+        sheet = json.loads(content)
+        return {
+            "summary": str(sheet.get("summary") or ""),
+            "concepts": sheet.get("concepts") or [],
+            "key_takeaways": sheet.get("key_takeaways") or [],
+            "generated_by_llm": True,
+            "llm_model_used": settings.OPENROUTER_DEFAULT_MODEL,
+            "llm_tokens_consumed": (response.get("usage") or {}).get("total_tokens"),
+        }
+    except Exception as exc:
+        logger.warning("LLM note organization failed, using local fallback: %s", exc)
+        return _local_learning_sheet(notes, scope_module_id)
 
 
 async def list_notes(
@@ -223,8 +346,8 @@ async def create_note_organization(
         StudentNoteOrganization.created_at >= day_start,
     )
     daily_count = (await db.execute(daily_count_query)).scalar_one()
-    if daily_count >= 5:
-        raise ConflictError("Rate limit reached: max 5 note organizations per day")
+    if daily_count >= 50:
+        raise ConflictError("Rate limit reached: max 50 note organizations per day")
 
     notes_query = select(StudentNote).where(
         StudentNote.user_id == user_id,
@@ -239,35 +362,19 @@ async def create_note_organization(
     if not notes:
         raise ValidationError("Pas de notes a organiser")
 
-    concepts_map: dict[str, list[StudentNote]] = {}
-    for note in notes:
-        key = note.tags[0] if note.tags else "general"
-        concepts_map.setdefault(key, []).append(note)
-
-    concepts = []
-    for concept_name, concept_notes in concepts_map.items():
-        concepts.append(
-            {
-                "concept_name": concept_name,
-                "description": f"Regroupement automatique du concept '{concept_name}'",
-                "related_note_ids": [n.id for n in concept_notes],
-                "key_points": [n.content[:120] for n in concept_notes[:3]],
-            }
-        )
-
-    key_takeaways = [n.content[:120] for n in notes[:3]]
-    summary = f"{len(notes)} notes organisees sur {len(concepts)} concepts."
+    sheet = await _generate_learning_sheet(notes, body.scope_module_id)
 
     org = StudentNoteOrganization(
         user_id=user_id,
         class_id=body.class_id,
         scope_module_id=body.scope_module_id,
         note_ids_organized=[n.id for n in notes],
-        summary=summary,
-        concepts=concepts,
-        key_takeaways=key_takeaways,
-        generated_by_llm=False,
-        llm_model_used=llm_model_used,
+        summary=sheet["summary"],
+        concepts=sheet["concepts"],
+        key_takeaways=sheet["key_takeaways"],
+        generated_by_llm=sheet["generated_by_llm"],
+        llm_model_used=sheet["llm_model_used"] or llm_model_used,
+        llm_tokens_consumed=sheet["llm_tokens_consumed"],
     )
     db.add(org)
     await db.flush()
@@ -311,8 +418,9 @@ async def start_quiz_attempt(db: AsyncSession, user_id: str, quiz_id: str, body:
             StudentQuizAttempt.status == "started",
         )
     )
-    if started_attempt.scalars().first() is not None:
-        raise ConflictError("An attempt is already in progress for this quiz")
+    existing_attempt = started_attempt.scalars().first()
+    if existing_attempt is not None:
+        return existing_attempt
 
     max_attempt_query = select(func.max(StudentQuizAttempt.attempt_number)).where(
         StudentQuizAttempt.user_id == user_id,

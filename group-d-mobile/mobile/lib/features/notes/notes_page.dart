@@ -96,7 +96,7 @@ class NotesPage extends ConsumerWidget {
   }
 
   void _showAddNoteDialog(BuildContext context) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,

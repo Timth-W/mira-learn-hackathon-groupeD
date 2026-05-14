@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../services/api_service.dart';
-import '../env.dart';
 import 'auth_provider.dart';
 
 /// Dio configuré pour le backend FastAPI du Groupe D.
@@ -37,14 +36,6 @@ final dioProvider = Provider<Dio>((ref) {
 /// `{status: "success", data: {...}}` — convention Hello Mira.
 class ApiClient extends ApiService {
   ApiClient(super.dio);
-
-  Future<Map<String, dynamic>> post(
-    String path, {
-    Map<String, dynamic>? body,
-  }) async {
-    final res = await dio.post<Map<String, dynamic>>(path, data: body);
-    return unwrap(res.data);
-  }
 }
 
 final apiClientProvider = Provider<ApiClient>((ref) {

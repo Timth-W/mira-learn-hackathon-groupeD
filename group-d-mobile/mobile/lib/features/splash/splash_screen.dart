@@ -27,7 +27,7 @@ class SplashScreen extends StatelessWidget {
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     letterSpacing: 8,
                     fontWeight: FontWeight.w700,
-                    color: MiraTheme.charcoal.withOpacity(0.5),
+                    color: MiraTheme.charcoal.withValues(alpha: 0.5),
                   ),
             ),
             const Spacer(flex: 2),

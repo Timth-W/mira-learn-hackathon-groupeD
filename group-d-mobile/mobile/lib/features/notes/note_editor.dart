@@ -81,7 +81,7 @@ class _NoteEditorState extends ConsumerState<NoteEditor> {
               hintText: 'Que souhaites-tu retenir ?',
               hintStyle: const TextStyle(color: MiraTheme.muted),
               filled: true,
-              fillColor: MiraTheme.warmBeige.withOpacity(0.5),
+              fillColor: MiraTheme.warmBeige.withValues(alpha: 0.5),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide.none,

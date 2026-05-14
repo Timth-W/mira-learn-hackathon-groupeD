@@ -21,7 +21,7 @@ class NoteCard extends ConsumerWidget {
       ),
       child: InkWell(
         onTap: () {
-          showModalBottomSheet(
+          showModalBottomSheet<void>(
             context: context,
             isScrollControlled: true,
             backgroundColor: Colors.transparent,

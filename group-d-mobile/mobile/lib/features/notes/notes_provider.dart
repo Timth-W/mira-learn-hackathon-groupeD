@@ -11,20 +11,9 @@ class Notes extends AsyncNotifier<List<Note>> {
   }
 
   Future<List<Note>> _fetchNotes() async {
-    final dio = ref.read(dioProvider);
-    final response = await dio.get('/v1/students/me/notes');
-    final body = response.data;
-
-    final List<dynamic> data;
-    if (body is Map<String, dynamic> &&
-        body['status'] == 'success' &&
-        body['data'] is List<dynamic>) {
-      data = body['data'] as List<dynamic>;
-    } else if (body is List<dynamic>) {
-      data = body;
-    } else {
-      data = const <dynamic>[];
-    }
+    final api = ref.read(apiClientProvider);
+    final body = await api.getAny('/v1/students/me/notes');
+    final data = body is List<dynamic> ? body : const <dynamic>[];
 
     return data
         .whereType<Map<String, dynamic>>()
@@ -33,12 +22,12 @@ class Notes extends AsyncNotifier<List<Note>> {
   }
 
   Future<void> addNote(String content, {String? moduleId, String? classId}) async {
-    final dio = ref.read(dioProvider);
+    final api = ref.read(apiClientProvider);
     final resolvedClassId = classId ?? await _resolveClassId();
 
-    await dio.post(
+    await api.postAny(
       '/v1/students/me/notes',
-      data: {
+      body: {
         'class_id': resolvedClassId,
         if (moduleId != null && moduleId.isNotEmpty) 'module_id': moduleId,
         'content': content,
@@ -48,14 +37,14 @@ class Notes extends AsyncNotifier<List<Note>> {
   }
 
   Future<void> updateNote(String id, String content) async {
-    final dio = ref.read(dioProvider);
-    await dio.patch('/v1/students/me/notes/$id', data: {'content': content});
+    final api = ref.read(apiClientProvider);
+    await api.patchAny('/v1/students/me/notes/$id', body: {'content': content});
     ref.invalidateSelf();
   }
 
   Future<void> deleteNote(String id) async {
-    final dio = ref.read(dioProvider);
-    await dio.delete('/v1/students/me/notes/$id');
+    final api = ref.read(apiClientProvider);
+    await api.deleteAny('/v1/students/me/notes/$id');
     ref.invalidateSelf();
   }
 

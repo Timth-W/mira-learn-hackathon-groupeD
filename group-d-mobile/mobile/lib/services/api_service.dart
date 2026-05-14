@@ -26,8 +26,58 @@ class ApiService {
     return unwrapAny(res.data);
   }
 
+  Future<Object?> postAny(String path, {Object? body}) async {
+    final res = await dio.post<Object?>(path, data: body);
+    return unwrapAny(res.data);
+  }
+
+  Future<Object?> putAny(String path, {Object? body}) async {
+    final res = await dio.put<Object?>(path, data: body);
+    return unwrapAny(res.data);
+  }
+
+  Future<Object?> patchAny(String path, {Object? body}) async {
+    final res = await dio.patch<Object?>(path, data: body);
+    return unwrapAny(res.data);
+  }
+
+  Future<Object?> deleteAny(String path) async {
+    final res = await dio.delete<Object?>(path);
+    return unwrapAny(res.data);
+  }
+
   Future<Map<String, dynamic>> get(String path) async {
     final data = await getAny(path);
+    if (data is Map<String, dynamic>) return data;
+
+    throw ApiException(
+      status: 'invalid_response',
+      message: 'Expected object response for $path',
+    );
+  }
+
+  Future<Map<String, dynamic>> post(String path, {Object? body}) async {
+    final data = await postAny(path, body: body);
+    if (data is Map<String, dynamic>) return data;
+
+    throw ApiException(
+      status: 'invalid_response',
+      message: 'Expected object response for $path',
+    );
+  }
+
+  Future<Map<String, dynamic>> put(String path, {Object? body}) async {
+    final data = await putAny(path, body: body);
+    if (data is Map<String, dynamic>) return data;
+
+    throw ApiException(
+      status: 'invalid_response',
+      message: 'Expected object response for $path',
+    );
+  }
+
+  Future<Map<String, dynamic>> patch(String path, {Object? body}) async {
+    final data = await patchAny(path, body: body);
     if (data is Map<String, dynamic>) return data;
 
     throw ApiException(

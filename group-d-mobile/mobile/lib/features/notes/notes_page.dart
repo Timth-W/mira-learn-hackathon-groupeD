@@ -56,7 +56,8 @@ class _NotesPageState extends ConsumerState<NotesPage> {
                   return SliverFillRemaining(
                     hasScrollBody: false,
                     child: _EmptyNotes(
-                        onCreate: () => _showAddNoteDialog(context)),
+                      onCreate: () => _showAddNoteDialog(context),
+                    ),
                   );
                 }
 
@@ -91,7 +92,8 @@ class _NotesPageState extends ConsumerState<NotesPage> {
               },
               loading: () => const SliverFillRemaining(
                 child: Center(
-                    child: CircularProgressIndicator(color: MiraTheme.miraRed)),
+                  child: CircularProgressIndicator(color: MiraTheme.miraRed),
+                ),
               ),
               error: (err, stack) => SliverFillRemaining(
                 child: Center(child: Text('Erreur: $err')),
@@ -178,8 +180,11 @@ class _EmptyNotes extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.note_alt_outlined,
-              size: 64, color: MiraTheme.mutedSoft),
+          const Icon(
+            Icons.note_alt_outlined,
+            size: 64,
+            color: MiraTheme.mutedSoft,
+          ),
           const SizedBox(height: 16),
           const Text(
             'Aucune note pour le moment.\nQue souhaites-tu retenir ?',
@@ -265,7 +270,9 @@ class _NotesDemoHeader extends StatelessWidget {
                     width: 18,
                     height: 18,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white),
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
                   )
                 : const Icon(Icons.auto_awesome_rounded, size: 20),
             label: Text(organizing ? 'Generation...' : 'Generer une fiche IA'),
@@ -281,7 +288,8 @@ class _NotesDemoHeader extends StatelessWidget {
 
   static String _moduleLabel(String value) {
     final prefix = value.length >= 4 ? value.substring(0, 4) : value;
-    final suffix = value.length >= 4 ? value.substring(value.length - 4) : value;
+    final suffix =
+        value.length >= 4 ? value.substring(value.length - 4) : value;
     return 'Module $prefix-$suffix';
   }
 }
@@ -327,7 +335,8 @@ class _FilterWrap extends StatelessWidget {
             label: Text(
               valueLabel(value),
               style: TextStyle(
-                color: selectedValue == value ? Colors.white : MiraTheme.charcoal,
+                color:
+                    selectedValue == value ? Colors.white : MiraTheme.charcoal,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -364,7 +373,8 @@ class _StatsBand extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-              child: _Metric(value: '$filteredCount', label: 'notes visibles')),
+            child: _Metric(value: '$filteredCount', label: 'notes visibles'),
+          ),
           Expanded(child: _Metric(value: '$conceptCount', label: 'concepts')),
           Expanded(child: _Metric(value: '$favoriteCount', label: 'favoris')),
         ],
@@ -392,8 +402,10 @@ class _Metric extends StatelessWidget {
             fontWeight: FontWeight.w800,
           ),
         ),
-        Text(label,
-            style: const TextStyle(color: MiraTheme.mutedSoft, fontSize: 12)),
+        Text(
+          label,
+          style: const TextStyle(color: MiraTheme.mutedSoft, fontSize: 12),
+        ),
       ],
     );
   }
@@ -419,21 +431,28 @@ class _OrganizationPanel extends StatelessWidget {
         children: [
           const Row(
             children: [
-              Icon(Icons.auto_awesome_rounded,
-                  color: MiraTheme.miraRed, size: 20),
+              Icon(
+                Icons.auto_awesome_rounded,
+                color: MiraTheme.miraRed,
+                size: 20,
+              ),
               SizedBox(width: 8),
               Text(
                 'Fiche de revision IA',
                 style: TextStyle(
-                    fontWeight: FontWeight.w800, color: MiraTheme.charcoal),
+                  fontWeight: FontWeight.w800,
+                  color: MiraTheme.charcoal,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 10),
           const Text(
             'Resume',
-            style:
-                TextStyle(fontWeight: FontWeight.w800, color: MiraTheme.charcoal),
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              color: MiraTheme.charcoal,
+            ),
           ),
           const SizedBox(height: 4),
           Text(organization.summary, style: const TextStyle(height: 1.4)),
@@ -442,44 +461,56 @@ class _OrganizationPanel extends StatelessWidget {
             const Text(
               'A retenir',
               style: TextStyle(
-                  fontWeight: FontWeight.w800, color: MiraTheme.charcoal),
+                fontWeight: FontWeight.w800,
+                color: MiraTheme.charcoal,
+              ),
             ),
             const SizedBox(height: 6),
             for (final takeaway in organization.keyTakeaways.take(4))
               Padding(
                 padding: const EdgeInsets.only(bottom: 4),
-                child: Text('- $takeaway',
-                    style:
-                        const TextStyle(color: MiraTheme.muted, height: 1.35)),
+                child: Text(
+                  '- $takeaway',
+                  style: const TextStyle(color: MiraTheme.muted, height: 1.35),
+                ),
               ),
             const SizedBox(height: 12),
           ],
           const Text(
             'Concepts reformules',
-            style:
-                TextStyle(fontWeight: FontWeight.w800, color: MiraTheme.charcoal),
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              color: MiraTheme.charcoal,
+            ),
           ),
           const SizedBox(height: 8),
           for (final concept in organization.concepts.take(3)) ...[
             Text(
               concept.name,
               style: const TextStyle(
-                  fontWeight: FontWeight.w800, color: MiraTheme.miraRed),
+                fontWeight: FontWeight.w800,
+                color: MiraTheme.miraRed,
+              ),
             ),
             const SizedBox(height: 4),
             if (concept.description.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(bottom: 4),
-                child: Text(concept.description,
-                    style:
-                        const TextStyle(color: MiraTheme.charcoal, height: 1.35)),
+                child: Text(
+                  concept.description,
+                  style: const TextStyle(
+                    color: MiraTheme.charcoal,
+                    height: 1.35,
+                  ),
+                ),
               ),
             for (final point in concept.keyPoints.take(2))
               Padding(
                 padding: const EdgeInsets.only(bottom: 4),
-                child: Text('- $point',
-                    style:
-                        const TextStyle(color: MiraTheme.muted, height: 1.35)),
+                child: Text(
+                  '- $point',
+                  style: const TextStyle(color: MiraTheme.muted, height: 1.35),
+                ),
               ),
             const SizedBox(height: 8),
           ],

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../app/theme.dart';
+import '../../core/theme/app_theme.dart';
 
 /// Shell de navigation avec BottomNavigationBar persistante pour les 4 onglets.
 class HomeShell extends StatelessWidget {
@@ -11,10 +11,14 @@ class HomeShell extends StatelessWidget {
   final Widget child;
 
   static const _tabs = <_TabSpec>[
-    _TabSpec(label: 'Programmes', icon: Icons.book_outlined, path: '/home/programs'),
-    _TabSpec(label: 'Biblio', icon: Icons.menu_book_outlined, path: '/home/library'),
-    _TabSpec(label: 'Tutor', icon: Icons.auto_awesome_outlined, path: '/home/tutor'),
-    _TabSpec(label: 'Profil', icon: Icons.person_outline, path: '/home/profile'),
+    _TabSpec(
+        label: 'Programmes', icon: Icons.book_outlined, path: '/home/programs'),
+    _TabSpec(
+        label: 'Biblio', icon: Icons.menu_book_outlined, path: '/home/library'),
+    _TabSpec(
+        label: 'Tutor', icon: Icons.auto_awesome_outlined, path: '/home/tutor'),
+    _TabSpec(
+        label: 'Profil', icon: Icons.person_outline, path: '/home/profile'),
   ];
 
   int get _currentIndex {

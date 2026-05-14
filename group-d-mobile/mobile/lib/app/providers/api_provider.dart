@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../services/api_service.dart';
-import '../env.dart';
 import 'auth_provider.dart';
 
 /// Dio configuré pour le backend FastAPI du Groupe D.
@@ -22,13 +21,15 @@ final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(ApiService.baseOptions(accessToken: token));
 
   // Log basique (à remplacer par TalkerDioLogger côté mira_chat)
-  dio.interceptors.add(LogInterceptor(
-    requestBody: false,
-    responseBody: false,
-    requestHeader: false,
-    responseHeader: false,
-    error: true,
-  ),);
+  dio.interceptors.add(
+    LogInterceptor(
+      requestBody: false,
+      responseBody: false,
+      requestHeader: false,
+      responseHeader: false,
+      error: true,
+    ),
+  );
 
   return dio;
 });

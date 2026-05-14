@@ -10,6 +10,9 @@ from app.core.config import settings
 from app.core.exceptions import ConflictError, NotFoundError, ValidationError
 from app.integrations.openrouter import llm_client
 from app.models.domain import (
+    CommunityActivityFeed,
+    Skill,
+    StudentProfile,
     StudentNote,
     StudentNoteOrganization,
     StudentQuizAnswer,
@@ -24,6 +27,7 @@ from app.schemas.group_d import (
     StudentNoteOrganizationCreate,
     StudentNoteUpdate,
 )
+from app.core.auth import AuthenticatedUser
 
 logger = logging.getLogger(__name__)
 
@@ -462,6 +466,154 @@ async def list_all_attempts(db: AsyncSession, user_id: str) -> list[StudentQuizA
         .order_by(StudentQuizAttempt.created_at.desc())
     )
     return list(result.scalars().all())
+
+
+async def list_community_feed(
+    db: AsyncSession,
+    event_type: str | None,
+    limit: int,
+    offset: int,
+) -> list[CommunityActivityFeed]:
+    query = select(CommunityActivityFeed).where(
+        (CommunityActivityFeed.expires_at.is_(None))
+        | (CommunityActivityFeed.expires_at > datetime.now(timezone.utc))
+    )
+    if event_type:
+        query = query.where(CommunityActivityFeed.event_type == event_type)
+    query = query.order_by(CommunityActivityFeed.occurred_at.desc()).limit(limit).offset(offset)
+    result = await db.execute(query)
+    return list(result.scalars().all())
+
+
+async def get_student_profile(
+    db: AsyncSession,
+    user: AuthenticatedUser,
+    active_class_count: int,
+) -> dict:
+    profile_result = await db.execute(
+        select(StudentProfile).where(
+            StudentProfile.user_id == user.user_id,
+            StudentProfile.deleted_at.is_(None),
+        )
+    )
+    profile = profile_result.scalars().first()
+
+    note_count = (
+        await db.execute(
+            select(func.count(StudentNote.id)).where(
+                StudentNote.user_id == user.user_id,
+                StudentNote.deleted_at.is_(None),
+            )
+        )
+    ).scalar_one()
+
+    attempts_result = await db.execute(
+        select(StudentQuizAttempt).where(StudentQuizAttempt.user_id == user.user_id)
+    )
+    attempts = list(attempts_result.scalars().all())
+    submitted_attempts = [item for item in attempts if item.status == "submitted"]
+    passed_attempts = [item for item in submitted_attempts if item.passed is True]
+
+    validated_skills = [_skill_from_attempt(attempt) for attempt in passed_attempts]
+    target_skills = await _target_skills(db, profile.target_skills if profile else [])
+    badges = _profile_badges(note_count, active_class_count, validated_skills)
+
+    return {
+        "display_name": _display_name(user, profile.display_name if profile else None),
+        "email": user.email,
+        "role": user.role,
+        "avatar_url": profile.avatar_url if profile else None,
+        "active_class_count": active_class_count,
+        "note_count": note_count,
+        "quiz_count": len(submitted_attempts),
+        "validated_skills": validated_skills,
+        "target_skills": target_skills,
+        "badges": badges,
+    }
+
+
+def _display_name(user: AuthenticatedUser, profile_name: str | None) -> str:
+    if profile_name:
+        return profile_name
+    if user.email and "@" in user.email:
+        return user.email.split("@", maxsplit=1)[0].replace(".", " ").title()
+    return "Nomade Mira"
+
+
+def _skill_from_attempt(attempt: StudentQuizAttempt) -> dict:
+    quiz = _QUIZ_DEFINITIONS.get(attempt.quiz_id)
+    name = quiz["skill_name"] if quiz else "Pitch investor"
+    return {
+        "name": name,
+        "category": "business",
+        "status": "validated",
+        "score_pct": int(attempt.score_pct or 0),
+    }
+
+
+async def _target_skills(db: AsyncSession, raw_target_skills: list[dict]) -> list[dict]:
+    if not raw_target_skills:
+        skill_result = await db.execute(
+            select(Skill)
+            .where(Skill.deleted_at.is_(None))
+            .order_by(Skill.popularity_score.desc())
+            .limit(3)
+        )
+        return [
+            {
+                "name": skill.name,
+                "category": skill.category,
+                "status": "target",
+                "score_pct": None,
+            }
+            for skill in skill_result.scalars().all()
+        ]
+
+    skills = []
+    for item in raw_target_skills[:5]:
+        name = str(item.get("name") or item.get("skill_name") or "Skill Mira")
+        category = str(item.get("category") or "business")
+        skills.append(
+            {
+                "name": name,
+                "category": category,
+                "status": "target",
+                "score_pct": None,
+            }
+        )
+    return skills
+
+
+def _profile_badges(note_count: int, active_class_count: int, validated_skills: list[dict]) -> list[dict]:
+    badges = []
+    if validated_skills:
+        badges.append(
+            {
+                "label": "Skill validee",
+                "description": f"{validated_skills[0]['name']} debloquee via QCM",
+                "icon": "workspace_premium",
+                "tone": "gold",
+            }
+        )
+    if note_count >= 3:
+        badges.append(
+            {
+                "label": "Notes en mouvement",
+                "description": f"{note_count} notes pretes a etre organisees",
+                "icon": "auto_stories",
+                "tone": "success",
+            }
+        )
+    if active_class_count > 0:
+        badges.append(
+            {
+                "label": "Cohorte active",
+                "description": f"{active_class_count} Mira Class suivies",
+                "icon": "groups",
+                "tone": "neutral",
+            }
+        )
+    return badges
 
 
 def get_quiz_definition(quiz_id: str) -> dict:

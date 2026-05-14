@@ -1,12 +1,21 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
 AttemptStatus = Literal["started", "submitted", "expired", "abandoned"]
 NoteColor = Literal["yellow", "green", "red", "blue", "purple"]
+CommunityEventType = Literal[
+    "skill_validated",
+    "class_started",
+    "enrolment_made",
+    "class_published_soon",
+    "mentor_validated",
+    "cohort_completed",
+    "milestone_reached",
+]
 
 
 class StudentNoteCreate(BaseModel):
@@ -136,3 +145,42 @@ class StudentQuizAttemptRead(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class CommunityActivityFeedRead(BaseModel):
+    id: str
+    event_type: CommunityEventType
+    display_text: str
+    display_icon: str | None
+    context: dict[str, Any]
+    occurred_at: datetime
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ProfileSkillRead(BaseModel):
+    name: str
+    category: str
+    status: Literal["validated", "target", "in_progress"]
+    score_pct: int | None = None
+
+
+class ProfileBadgeRead(BaseModel):
+    label: str
+    description: str
+    icon: str
+    tone: Literal["gold", "success", "neutral"]
+
+
+class StudentProfileRead(BaseModel):
+    display_name: str
+    email: str | None
+    role: str
+    avatar_url: str | None
+    active_class_count: int
+    note_count: int
+    quiz_count: int
+    validated_skills: list[ProfileSkillRead]
+    target_skills: list[ProfileSkillRead]
+    badges: list[ProfileBadgeRead]

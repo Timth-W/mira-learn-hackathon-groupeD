@@ -20,6 +20,40 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.models.base import Base, SoftDeleteMixin, TimestampMixin
 
 
+class Skill(Base, TimestampMixin, SoftDeleteMixin):
+    __tablename__ = "skill"
+
+    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, server_default=text("uuid_generate_v4()"))
+    slug: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    category: Mapped[str] = mapped_column(String(32), nullable=False)
+    popularity_score: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+
+class StudentProfile(Base, TimestampMixin, SoftDeleteMixin):
+    __tablename__ = "student_profile"
+
+    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, server_default=text("uuid_generate_v4()"))
+    user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), nullable=False, unique=True)
+    display_name: Mapped[str] = mapped_column(String(120), nullable=False)
+    avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    target_skills: Mapped[list[dict]] = mapped_column(JSONB, nullable=False, default=list)
+
+
+class CommunityActivityFeed(Base):
+    __tablename__ = "community_activity_feed"
+
+    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, server_default=text("uuid_generate_v4()"))
+    event_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    display_text: Mapped[str] = mapped_column(Text, nullable=False)
+    display_icon: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    context: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False, default=dict)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
+
 class StudentNote(Base, TimestampMixin, SoftDeleteMixin):
     __tablename__ = "student_note"
 

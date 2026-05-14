@@ -50,7 +50,9 @@ class NoteCard extends ConsumerWidget {
                         ),
                         for (final tag in note.tags.take(2))
                           _ChipLabel(
-                              label: '#$tag', color: MiraTheme.warmBeige),
+                            label: '#$tag',
+                            color: MiraTheme.warmBeige,
+                          ),
                       ],
                     ),
                   ),
@@ -69,8 +71,11 @@ class NoteCard extends ConsumerWidget {
                     visualDensity: VisualDensity.compact,
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete_outline,
-                        size: 20, color: MiraTheme.muted),
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      size: 20,
+                      color: MiraTheme.muted,
+                    ),
                     onPressed: () {
                       ref.read(notesProvider.notifier).deleteNote(note.id);
                     },
@@ -114,7 +119,8 @@ class NoteCard extends ConsumerWidget {
 
   static String _moduleLabel(String value) {
     final prefix = value.length >= 4 ? value.substring(0, 4) : value;
-    final suffix = value.length >= 4 ? value.substring(value.length - 4) : value;
+    final suffix =
+        value.length >= 4 ? value.substring(value.length - 4) : value;
     return 'MODULE $prefix-$suffix';
   }
 

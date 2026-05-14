@@ -9,6 +9,7 @@ import '../features/programs/program_detail_page.dart';
 import '../features/modules/module_detail_page.dart';
 import '../features/quiz/quiz_page.dart';
 import '../features/notes/notes_page.dart';
+import '../features/community/community_page.dart';
 import '../features/me/me_screen.dart';
 import 'providers/auth_provider.dart';
 import '../core/theme/app_theme.dart';
@@ -53,7 +54,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           body: child,
           bottomNavigationBar: Container(
             decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: MiraTheme.rule, width: 0.5)),
+              border:
+                  Border(top: BorderSide(color: MiraTheme.rule, width: 0.5)),
             ),
             child: BottomNavigationBar(
               currentIndex: _calculateSelectedIndex(state.matchedLocation),
@@ -61,13 +63,16 @@ final routerProvider = Provider<GoRouter>((ref) {
               backgroundColor: MiraTheme.cardBg,
               selectedItemColor: MiraTheme.miraRed,
               unselectedItemColor: MiraTheme.muted,
-              selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
-              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+              selectedLabelStyle:
+                  const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+              unselectedLabelStyle:
+                  const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
               type: BottomNavigationBarType.fixed,
               onTap: (index) {
                 if (index == 0) context.go('/');
                 if (index == 1) context.go('/notes');
-                if (index == 2) context.go('/me');
+                if (index == 2) context.go('/community');
+                if (index == 3) context.go('/me');
               },
               items: const [
                 BottomNavigationBarItem(
@@ -95,6 +100,17 @@ final routerProvider = Provider<GoRouter>((ref) {
                 BottomNavigationBarItem(
                   icon: Padding(
                     padding: EdgeInsets.only(bottom: 4),
+                    child: Icon(Icons.groups_outlined),
+                  ),
+                  activeIcon: Padding(
+                    padding: EdgeInsets.only(bottom: 4),
+                    child: Icon(Icons.groups),
+                  ),
+                  label: 'Communaute',
+                ),
+                BottomNavigationBarItem(
+                  icon: Padding(
+                    padding: EdgeInsets.only(bottom: 4),
                     child: Icon(Icons.person_outline),
                   ),
                   activeIcon: Padding(
@@ -115,6 +131,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/notes',
             builder: (_, __) => const NotesPage(),
+          ),
+          GoRoute(
+            path: '/community',
+            builder: (_, __) => const CommunityPage(),
           ),
           GoRoute(
             path: '/me',
@@ -154,7 +174,8 @@ final routerProvider = Provider<GoRouter>((ref) {
 
 int _calculateSelectedIndex(String location) {
   if (location.startsWith('/notes')) return 1;
-  if (location.startsWith('/me')) return 2;
+  if (location.startsWith('/community')) return 2;
+  if (location.startsWith('/me')) return 3;
   return 0;
 }
 

@@ -1,7 +1,5 @@
-import 'dart:async';
-
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/network/api_provider.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../app/providers/api_provider.dart';
 import 'note_model.dart';
 
 final notesProvider = AsyncNotifierProvider<Notes, List<Note>>(Notes.new);

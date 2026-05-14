@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/app.dart';
-import 'core/network/env.dart';
+import 'app/env.dart';
 
 /// Bootstrap de l'app Mira Learn Mobile (template hackathon).
 ///

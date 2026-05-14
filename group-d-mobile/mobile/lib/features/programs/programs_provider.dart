@@ -1,5 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../../core/network/api_provider.dart';
+import '../../app/providers/api_provider.dart';
 import 'program_model.dart';
 
 part 'programs_provider.g.dart';

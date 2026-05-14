@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../services/api_service.dart';
+import './env.dart';
 import 'auth_provider.dart';
 
 /// Dio configuré pour le backend FastAPI du Groupe D.

@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/app.dart';
-import 'app/env.dart';
+import 'core/network/env.dart';
 
 /// Bootstrap de l'app Mira Learn Mobile (template hackathon).
 ///
@@ -26,7 +26,7 @@ import 'app/env.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 1. Charge le .env (asset embarqué via pubspec.yaml)
+  // 1. Charge le .env à la racine du projet
   await dotenv.load(fileName: '.env');
 
   // 2. Init Supabase avec les credentials de la branche groupe-d

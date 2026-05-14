@@ -1,15 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
 import '../../core/theme/app_theme.dart';
 import '../notes/note_editor.dart';
 
 class ModuleDetailPage extends StatelessWidget {
+  const ModuleDetailPage({
+    super.key,
+    required this.id,
+    this.classId,
+    this.title,
+    this.description,
+    this.duration,
+    this.quizId,
+  });
+
   final String id;
-  const ModuleDetailPage({super.key, required this.id});
+  final String? classId;
+  final String? title;
+  final String? description;
+  final String? duration;
+  final String? quizId;
 
   @override
   Widget build(BuildContext context) {
-    final String moduleId = id;
-
     return Scaffold(
       backgroundColor: MiraTheme.warmBeige,
       appBar: AppBar(
@@ -21,12 +35,12 @@ class ModuleDetailPage extends StatelessWidget {
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Module $id',
+              'Module ${id.substring(0, id.length > 8 ? 8 : id.length)}',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.w800,
                     letterSpacing: 2,
@@ -35,12 +49,17 @@ class ModuleDetailPage extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Introduction au freelancing', // Mock title
+              title ?? 'Module Mira Learn',
               style: Theme.of(context).textTheme.displayMedium?.copyWith(fontSize: 32),
             ),
+            if (duration != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                duration!,
+                style: const TextStyle(color: MiraTheme.muted, fontSize: 14),
+              ),
+            ],
             const SizedBox(height: 24),
-
-            // Video Placeholder "Premium"
             Container(
               height: 220,
               width: double.infinity,
@@ -48,7 +67,9 @@ class ModuleDetailPage extends StatelessWidget {
                 color: MiraTheme.charcoal,
                 borderRadius: BorderRadius.circular(24),
                 image: const DecorationImage(
-                  image: NetworkImage('https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=80'),
+                  image: NetworkImage(
+                    'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=80',
+                  ),
                   fit: BoxFit.cover,
                   opacity: 0.6,
                 ),
@@ -68,42 +89,50 @@ class ModuleDetailPage extends StatelessWidget {
                 ],
               ),
             ),
-
             const SizedBox(height: 32),
-
             const Text(
-              'Résumé du module',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: MiraTheme.charcoal),
+              'Resume du module',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: MiraTheme.charcoal,
+              ),
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Dans ce module, nous allons explorer les bases du sujet. '
-              'Vous apprendrez les concepts fondamentaux et comment les appliquer dans des cas réels.',
-              style: TextStyle(fontSize: 15, height: 1.6, color: MiraTheme.charcoal),
+            Text(
+              description ??
+                  'Dans ce module, nous allons explorer les bases du sujet et les appliquer a des cas reels.',
+              style: const TextStyle(fontSize: 15, height: 1.6, color: MiraTheme.charcoal),
             ),
-
             const SizedBox(height: 32),
-
             const Text(
               'Ressources',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: MiraTheme.charcoal),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: MiraTheme.charcoal,
+              ),
             ),
             const SizedBox(height: 12),
-            _buildResourceItem(context, Icons.picture_as_pdf_outlined, 'Guide complet du module', 'PDF • 2.4 MB'),
-
+            _buildResourceItem(
+              Icons.picture_as_pdf_outlined,
+              'Support du module',
+              'PDF • Acces rapide',
+            ),
             const SizedBox(height: 40),
-
-            // Actions CTA
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      showModalBottomSheet(
+                      showModalBottomSheet<void>(
                         context: context,
                         isScrollControlled: true,
                         backgroundColor: Colors.transparent,
-                        builder: (context) => NoteEditor(moduleId: moduleId),
+                        builder: (context) => NoteEditor(
+                          moduleId: id,
+                          classId: classId,
+                        ),
                       );
                     },
                     icon: const Icon(Icons.edit_note_rounded, size: 20),
@@ -114,8 +143,21 @@ class ModuleDetailPage extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Le QCM sera bientôt disponible !')),
+                      if (quizId == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Le QCM sera bientot disponible !')),
+                        );
+                        return;
+                      }
+                      context.push(
+                        Uri(
+                          path: '/quiz/$quizId',
+                          queryParameters: {
+                            if (classId != null) 'classId': classId!,
+                            'moduleId': id,
+                            if (title != null) 'title': title!,
+                          },
+                        ).toString(),
                       );
                     },
                     icon: const Icon(Icons.quiz_outlined, size: 20),
@@ -131,7 +173,7 @@ class ModuleDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildResourceItem(BuildContext context, IconData icon, String title, String subtitle) {
+  Widget _buildResourceItem(IconData icon, String title, String subtitle) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),

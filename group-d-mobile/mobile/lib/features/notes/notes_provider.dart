@@ -32,14 +32,14 @@ class Notes extends AsyncNotifier<List<Note>> {
         .toList(growable: false);
   }
 
-  Future<void> addNote(String content, {String? moduleId}) async {
+  Future<void> addNote(String content, {String? moduleId, String? classId}) async {
     final dio = ref.read(dioProvider);
-    final classId = await _resolveClassId();
+    final resolvedClassId = classId ?? await _resolveClassId();
 
     await dio.post(
       '/v1/students/me/notes',
       data: {
-        'class_id': classId,
+        'class_id': resolvedClassId,
         if (moduleId != null && moduleId.isNotEmpty) 'module_id': moduleId,
         'content': content,
       },

@@ -4,6 +4,7 @@ class Program {
     required this.title,
     this.mentorName,
     this.city,
+    this.progressPct,
     this.nextModuleTitle,
     this.moduleCount,
     this.startsAt,
@@ -14,6 +15,7 @@ class Program {
   final String title;
   final String? mentorName;
   final String? city;
+  final int? progressPct;
   final String? nextModuleTitle;
   final int? moduleCount;
   final DateTime? startsAt;
@@ -50,6 +52,7 @@ class Program {
         json['location_city'],
         session['location_city'],
       ),
+      progressPct: _intOf(json['progress_pct'], json['progress']),
       nextModuleTitle: _stringOf(json['next_module_title']),
       moduleCount: _intOf(
         json['module_count'],

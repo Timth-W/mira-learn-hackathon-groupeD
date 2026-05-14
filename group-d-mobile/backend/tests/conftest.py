@@ -6,11 +6,23 @@ MIGRATION HINT (post-hackathon) :
     (test_db, async_client, mock_auth, mock_nats, etc.).
 """
 import asyncio
+import os
 from collections.abc import AsyncGenerator
 
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
+
+# Defaults for local test collection. Real deployments still validate their
+# actual environment through app.core.config.Settings.
+os.environ.setdefault(
+    "DATABASE_URL",
+    "postgresql+asyncpg://postgres:postgres@localhost:5432/mira_learn_test",
+)
+os.environ.setdefault("SUPABASE_URL", "https://example.supabase.co")
+os.environ.setdefault("SUPABASE_ANON_KEY", "test-anon-key")
+os.environ.setdefault("OPENROUTER_API_KEY", "test-openrouter-key")
+os.environ.pop("SSLKEYLOGFILE", None)
 
 from app.core.db import AsyncSessionLocal
 from main import app

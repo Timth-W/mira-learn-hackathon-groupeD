@@ -5,9 +5,12 @@ from app.core.auth import AuthenticatedUser, require_auth
 from app.core.db import get_db
 from app.core.responses import fail_response, success_response
 from app.schemas.group_d import (
+    CommunityActivityFeedRead,
+    CommunityEventType,
     QuizAnswersBatchUpsert,
     QuizAttemptStart,
     QuizAttemptSubmit,
+    StudentProfileRead,
     StudentNoteCreate,
     StudentNoteOrganizationCreate,
     StudentNoteOrganizationRead,
@@ -16,7 +19,7 @@ from app.schemas.group_d import (
     StudentQuizAnswerRead,
     StudentQuizAttemptRead,
 )
-from app.services import group_d_service
+from app.services import enrolment_service, group_d_service
 
 router = APIRouter()
 
@@ -234,4 +237,31 @@ async def list_all_attempts(
 ) -> dict:
     attempts = await group_d_service.list_all_attempts(db, user.user_id)
     return success_response(data=[StudentQuizAttemptRead.model_validate(a).model_dump(mode="json") for a in attempts])
+
+
+@router.get("/community/feed")
+async def list_community_feed(
+    db: AsyncSession = Depends(get_db),
+    event_type: CommunityEventType | None = Query(default=None),
+    limit: int = Query(default=30, ge=1, le=50),
+    offset: int = Query(default=0, ge=0),
+    user: AuthenticatedUser = Depends(require_auth),
+) -> dict:
+    del user
+    items = await group_d_service.list_community_feed(db, event_type, limit, offset)
+    return success_response(data=[CommunityActivityFeedRead.model_validate(item).model_dump(mode="json") for item in items])
+
+
+@router.get("/me/profile")
+async def get_my_profile(
+    db: AsyncSession = Depends(get_db),
+    user: AuthenticatedUser = Depends(require_auth),
+) -> dict:
+    enrolments = enrolment_service.list_my_enrolments(user)
+    profile = await group_d_service.get_student_profile(
+        db,
+        user,
+        active_class_count=len(enrolments),
+    )
+    return success_response(data=StudentProfileRead.model_validate(profile).model_dump(mode="json"))
 

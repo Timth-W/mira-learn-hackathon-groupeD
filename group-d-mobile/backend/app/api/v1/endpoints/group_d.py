@@ -124,6 +124,15 @@ async def get_note_organization(
     return success_response(data=StudentNoteOrganizationRead.model_validate(organization).model_dump(mode="json"))
 
 
+@router.get("/students/me/quizzes/{quiz_id}")
+async def get_quiz_definition(
+    quiz_id: str,
+    user: AuthenticatedUser = Depends(require_auth),
+) -> dict:
+    quiz = group_d_service.get_quiz_definition(quiz_id)
+    return success_response(data=quiz)
+
+
 @router.delete("/students/me/note-organizations/{organization_id}")
 async def delete_note_organization(
     organization_id: str,

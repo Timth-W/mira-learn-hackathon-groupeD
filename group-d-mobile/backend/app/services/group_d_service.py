@@ -21,6 +21,95 @@ from app.schemas.group_d import (
     StudentNoteUpdate,
 )
 
+_QUIZ_DEFINITIONS: dict[str, dict] = {
+    "11111111-2222-3333-4444-555555559001": {
+        "id": "11111111-2222-3333-4444-555555559001",
+        "title": "QCM - Storytelling pour investisseurs",
+        "module_id": "11111111-2222-3333-4444-555555555003",
+        "class_id": "11111111-2222-3333-4444-555555555001",
+        "skill_name": "Pitch investor",
+        "pass_threshold_pct": "70.00",
+        "questions": [
+            {
+                "id": "q-pitch-1",
+                "prompt": "Quel ordre rend un pitch plus clair ?",
+                "options": [
+                    {"id": "a", "label": "Probleme → Solution → Traction → Ask"},
+                    {"id": "b", "label": "Traction → Ask → Probleme → Equipe"},
+                    {"id": "c", "label": "Equipe → Vision → Problemes secondaires"},
+                ],
+                "correct_option_ids": ["a"],
+                "points": 1,
+            },
+            {
+                "id": "q-pitch-2",
+                "prompt": "Quel element aide le plus a capter l attention en debut de pitch ?",
+                "options": [
+                    {"id": "a", "label": "Une liste de KPI"},
+                    {"id": "b", "label": "Un hook concret et memorisable"},
+                    {"id": "c", "label": "Le detail du cap table"},
+                ],
+                "correct_option_ids": ["b"],
+                "points": 1,
+            },
+            {
+                "id": "q-pitch-3",
+                "prompt": "Quand presenter la traction ?",
+                "options": [
+                    {"id": "a", "label": "Jamais, cela coupe l emotion"},
+                    {"id": "b", "label": "Apres la solution pour credibiliser le pitch"},
+                    {"id": "c", "label": "Uniquement en annexe"},
+                ],
+                "correct_option_ids": ["b"],
+                "points": 1,
+            },
+            {
+                "id": "q-pitch-4",
+                "prompt": "Que doit contenir un bon ask final ?",
+                "options": [
+                    {"id": "a", "label": "Un besoin clair et relie a la prochaine etape"},
+                    {"id": "b", "label": "Une longue biographie du fondateur"},
+                    {"id": "c", "label": "Le planning de tous les posts LinkedIn"},
+                ],
+                "correct_option_ids": ["a"],
+                "points": 1,
+            },
+            {
+                "id": "q-pitch-5",
+                "prompt": "Quel ton est recommande pour repondre a une objection investisseur ?",
+                "options": [
+                    {"id": "a", "label": "Defensif pour montrer sa conviction"},
+                    {"id": "b", "label": "Calme, factuel et recentre sur le risque traite"},
+                    {"id": "c", "label": "Tres technique des la premiere phrase"},
+                ],
+                "correct_option_ids": ["b"],
+                "points": 1,
+            },
+        ],
+    },
+    "11111111-2222-3333-4444-555555559002": {
+        "id": "11111111-2222-3333-4444-555555559002",
+        "title": "QCM - Objections et FAQ",
+        "module_id": "11111111-2222-3333-4444-555555555004",
+        "class_id": "11111111-2222-3333-4444-555555555001",
+        "skill_name": "Gestion des objections",
+        "pass_threshold_pct": "70.00",
+        "questions": [
+            {
+                "id": "q-obj-1",
+                "prompt": "Face a une objection, quel reflexe est prefere ?",
+                "options": [
+                    {"id": "a", "label": "Reformuler avant de repondre"},
+                    {"id": "b", "label": "Couper la personne pour rectifier"},
+                    {"id": "c", "label": "Changer completement de sujet"},
+                ],
+                "correct_option_ids": ["a"],
+                "points": 1,
+            },
+        ],
+    },
+}
+
 
 def _apply_note_filters(
     query: Select,
@@ -265,6 +354,19 @@ async def list_all_attempts(db: AsyncSession, user_id: str) -> list[StudentQuizA
         .order_by(StudentQuizAttempt.created_at.desc())
     )
     return list(result.scalars().all())
+
+
+def get_quiz_definition(quiz_id: str) -> dict:
+    quiz = _QUIZ_DEFINITIONS.get(quiz_id)
+    if quiz is None:
+        raise NotFoundError("Quiz", quiz_id)
+
+    max_score = sum(int(question["points"]) for question in quiz["questions"])
+    return {
+        **quiz,
+        "max_score": max_score,
+        "question_count": len(quiz["questions"]),
+    }
 
 
 async def get_attempt(db: AsyncSession, user_id: str, attempt_id: str) -> StudentQuizAttempt:

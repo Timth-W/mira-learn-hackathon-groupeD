@@ -130,7 +130,7 @@ class AuthenticatedUser:
         return f"AuthenticatedUser(user_id={self.user_id!r}, role={self.role!r})"
 
 
-async def require_auth(authorization: str = Header(...)) -> AuthenticatedUser:
+async def require_auth(authorization: str | None = Header(default=None)) -> AuthenticatedUser:
     """FastAPI dependency : extrait user authentifié du header Authorization.
 
     Usage :
@@ -138,7 +138,7 @@ async def require_auth(authorization: str = Header(...)) -> AuthenticatedUser:
         async def get_me(user: AuthenticatedUser = Depends(require_auth)):
             return user
     """
-    if not authorization.startswith("Bearer "):
+    if authorization is None or not authorization.startswith("Bearer "):
         return _demo_user()
 
     token = authorization[len("Bearer "):]

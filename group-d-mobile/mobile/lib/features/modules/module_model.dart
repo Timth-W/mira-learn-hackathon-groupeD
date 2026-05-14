@@ -10,6 +10,11 @@ class Module with _$Module {
     required String title,
     required String duration,
     required int progress,
+    String? classId,
+    String? description,
+    String? quizId,
+    String? status,
+    @Default(<String>[]) List<String> materials,
     @Default(false) bool isLocked,
   }) = _Module;
 

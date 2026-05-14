@@ -7,6 +7,7 @@ import '../features/splash/splash_screen.dart';
 import '../features/programs/programs_page.dart';
 import '../features/programs/program_detail_page.dart';
 import '../features/modules/module_detail_page.dart';
+import '../features/quiz/quiz_page.dart';
 import '../features/notes/notes_page.dart';
 import '../features/me/me_screen.dart';
 import 'providers/auth_provider.dart';
@@ -131,6 +132,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/module/:id',
         builder: (context, state) => ModuleDetailPage(
           id: state.pathParameters['id']!,
+          classId: state.uri.queryParameters['classId'],
+          title: state.uri.queryParameters['title'],
+          description: state.uri.queryParameters['description'],
+          duration: state.uri.queryParameters['duration'],
+          quizId: state.uri.queryParameters['quizId'],
+        ),
+      ),
+      GoRoute(
+        path: '/quiz/:id',
+        builder: (context, state) => QuizPage(
+          id: state.pathParameters['id']!,
+          classId: state.uri.queryParameters['classId'],
+          moduleId: state.uri.queryParameters['moduleId'],
+          title: state.uri.queryParameters['title'],
         ),
       ),
     ],

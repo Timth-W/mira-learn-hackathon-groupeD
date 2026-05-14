@@ -32,11 +32,15 @@ class Notes extends AsyncNotifier<List<Note>> {
         .toList(growable: false);
   }
 
-  Future<void> addNote(String content,
-      {String? moduleId, String? classId}) async {
+  Future<void> addNote(
+    String content, {
+    String? moduleId,
+    String? classId,
+    String? concept,
+  }) async {
     final dio = ref.read(dioProvider);
     final resolvedClassId = classId ?? await _resolveClassId();
-    final tags = _suggestTags(content);
+    final tags = _resolveTags(content, concept);
 
     await dio.post(
       '/v1/students/me/notes',
@@ -51,9 +55,20 @@ class Notes extends AsyncNotifier<List<Note>> {
     ref.invalidateSelf();
   }
 
-  Future<void> updateNote(String id, String content) async {
+  Future<void> updateNote(
+    String id,
+    String content, {
+    String? concept,
+  }) async {
     final dio = ref.read(dioProvider);
-    await dio.patch('/v1/students/me/notes/$id', data: {'content': content});
+    await dio.patch(
+      '/v1/students/me/notes/$id',
+      data: {
+        'content': content,
+        'tags': _resolveTags(content, concept),
+        'color': _suggestColor(_resolveTags(content, concept)),
+      },
+    );
     ref.invalidateSelf();
   }
 
@@ -112,6 +127,14 @@ class Notes extends AsyncNotifier<List<Note>> {
 
     throw StateError(
         'Impossible de creer une note: aucun class_id disponible.');
+  }
+
+  List<String> _resolveTags(String content, String? concept) {
+    final normalizedConcept = concept?.trim().toLowerCase();
+    if (normalizedConcept != null && normalizedConcept.isNotEmpty) {
+      return [normalizedConcept];
+    }
+    return _suggestTags(content);
   }
 
   List<String> _suggestTags(String content) {

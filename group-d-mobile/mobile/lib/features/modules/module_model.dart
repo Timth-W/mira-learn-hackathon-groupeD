@@ -6,7 +6,7 @@ part 'module_model.g.dart';
 @freezed
 class Module with _$Module {
   const factory Module({
-    required int id,
+    required String id,
     required String title,
     required String duration,
     required int progress,

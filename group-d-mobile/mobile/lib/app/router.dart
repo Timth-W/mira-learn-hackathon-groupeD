@@ -9,7 +9,7 @@ import '../features/programs/program_detail_page.dart';
 import '../features/modules/module_detail_page.dart';
 import '../features/notes/notes_page.dart';
 import '../features/me/me_screen.dart';
-import '../core/network/auth_provider.dart';
+import 'providers/auth_provider.dart';
 import '../core/theme/app_theme.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {

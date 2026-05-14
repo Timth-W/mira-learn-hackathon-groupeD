@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/network/api_provider.dart';
-import '../../core/network/auth_provider.dart';
+import '../../app/providers/api_provider.dart';
+import '../../app/providers/auth_provider.dart';
 import '../../core/theme/app_theme.dart';
 
 /// Écran de vérification — affiche le user Supabase connecté +

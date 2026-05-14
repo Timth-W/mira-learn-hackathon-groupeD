@@ -50,7 +50,7 @@ class Programs extends _$Programs {
 
       programs.add(
         Program(
-          id: classId.hashCode.abs(),
+          id: classId,
           title: 'Classe ${classId.substring(0, classId.length > 8 ? 8 : classId.length)}',
           mentor: 'Mira Learn',
           progress: (classNotes.length * 20).clamp(5, 100),

@@ -6,7 +6,7 @@ MIGRATION HINT (post-hackathon) :
 """
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import enrolments, example, health
+from app.api.v1.endpoints import enrolments, example, group_d, health
 
 router = APIRouter()
 

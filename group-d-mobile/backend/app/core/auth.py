@@ -39,6 +39,16 @@ logger = logging.getLogger(__name__)
 
 
 _jwks_cache: dict[str, Any] | None = None
+_DEMO_USER_ID = "33e25231-0fb2-4c35-82f4-2169dc769d4d"
+_DEMO_USER_EMAIL = "anna.lopez@hackathon.test"
+
+
+def _demo_user() -> "AuthenticatedUser":
+    return AuthenticatedUser(
+        user_id=_DEMO_USER_ID,
+        email=_DEMO_USER_EMAIL,
+        role="nomad",
+    )
 
 
 async def _fetch_jwks() -> dict[str, Any]:
@@ -129,29 +139,17 @@ async def require_auth(authorization: str = Header(...)) -> AuthenticatedUser:
             return user
     """
     if not authorization.startswith("Bearer "):
-        return AuthenticatedUser(
-            user_id="demo-user",
-            email="anna.lopez@hackathon.test",
-            role="nomad",
-        )
+        return _demo_user()
 
     token = authorization[len("Bearer "):]
     try:
         payload = await _decode_jwt(token)
     except HTTPException:
-        return AuthenticatedUser(
-            user_id="demo-user",
-            email="anna.lopez@hackathon.test",
-            role="nomad",
-        )
+        return _demo_user()
 
     user_id = payload.get("sub")
     if not user_id:
-        return AuthenticatedUser(
-            user_id="demo-user",
-            email="anna.lopez@hackathon.test",
-            role="nomad",
-        )
+        return _demo_user()
 
     email = payload.get("email")
     user_metadata = payload.get("user_metadata", {}) or {}

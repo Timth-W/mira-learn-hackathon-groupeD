@@ -6,7 +6,7 @@ part 'program_model.g.dart';
 @freezed
 class Program with _$Program {
   const factory Program({
-    required int id,
+    required String id,
     required String title,
     required String mentor,
     required int progress,

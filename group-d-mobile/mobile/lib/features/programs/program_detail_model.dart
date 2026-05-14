@@ -7,7 +7,7 @@ part 'program_detail_model.g.dart';
 @freezed
 class ProgramDetail with _$ProgramDetail {
   const factory ProgramDetail({
-    required int id,
+    required String id,
     required String title,
     required String description,
     required int globalProgress,

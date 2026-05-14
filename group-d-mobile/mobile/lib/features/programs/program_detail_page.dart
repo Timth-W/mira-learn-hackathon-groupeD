@@ -9,8 +9,7 @@ class ProgramDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final programId = int.tryParse(id) ?? 0;
-    final programAsync = ref.watch(programDetailProvider(programId));
+    final programAsync = ref.watch(programDetailProvider(id));
 
     return Scaffold(
       appBar: AppBar(

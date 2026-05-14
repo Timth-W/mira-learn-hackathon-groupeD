@@ -1,5 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../../core/network/api_provider.dart';
+import '../../app/providers/api_provider.dart';
 import 'note_model.dart';
 
 part 'notes_provider.g.dart';
